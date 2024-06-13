@@ -50,7 +50,16 @@ def set_global_determinism(seed=1):
 
 def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics, opt, lr, batch):
     print(lr, batch)
-    classifier = snn(n_class)
+
+    if experiment == '1':
+        classifier = snn_1(n_class)
+    elif experiment == '2':
+        classifier = snn_2(n_class)
+    elif experiment == '3':
+        classifier = snn_3(n_class)
+    else:
+        classifier = snn(n_class)
+
     model = classifier.get_model(input_shape=(64, 64, 1), residual = True)
 
 
@@ -183,6 +192,7 @@ def run(experiment):
 
         fm, model = train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics,
                                 opt_learn[int(experiment)-1], learn_rate[int(experiment)-1], learn_batch[int(experiment)-1])
+
         best_lr = learn_rate[int(experiment)-1]
         best_batch = learn_batch[int(experiment)-1]
         fm_ = fm
