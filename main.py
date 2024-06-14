@@ -105,7 +105,8 @@ def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn
 
 
 def run(experiment):
-    os.environ["CUDA_VISIBLE_DEVICES"]="0, 1, 2, 3, 4, 5, 6, 7"
+    # os.environ["CUDA_VISIBLE_DEVICES"]="0, 1, 2, 3, 4, 5, 6, 7"
+    os.environ["CUDA_VISIBLE_DEVICES"]="6"
 
     SEED=1
 
