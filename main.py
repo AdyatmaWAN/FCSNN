@@ -7,8 +7,8 @@ from tensorflow.keras.layers import CategoryEncoding
 from tensorflow.keras.optimizers import Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam, Ftrl
 from model import snn
 from FCSNN_1 import snn_1
-from FCSNN_2 import snn_2
-from FCSNN_3 import snn_3
+# from FCSNN_2 import snn_2
+# from FCSNN_3 import snn_3
 import time
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, f1_score
 from tensorflow.keras.callbacks import ReduceLROnPlateau, EarlyStopping
@@ -53,10 +53,10 @@ def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn
 
     if experiment == '1':
         classifier = snn_1(n_class)
-    elif experiment == '2':
-        classifier = snn_2(n_class)
-    elif experiment == '3':
-        classifier = snn_3(n_class)
+    # elif experiment == '2':
+    #     classifier = snn_2(n_class)
+    # elif experiment == '3':
+    #     classifier = snn_3(n_class)
     else:
         classifier = snn(n_class)
 
@@ -105,7 +105,7 @@ def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn
 
 
 def run(experiment):
-    os.environ["CUDA_VISIBLE_DEVICES"]="5, 6, 7"
+    os.environ["CUDA_VISIBLE_DEVICES"]="0, 1, 2, 3, 4, 5, 6, 7"
 
     SEED=1
 
