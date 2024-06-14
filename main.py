@@ -185,7 +185,7 @@ def run(experiment):
 
     fm_ = -999
 
-    if experiment <= 4:
+    if int(experiment) <= 4:
         learn_rate = [0.005, 0.001, 0.0001]
         learn_batch = [512, 64, 16]
         opt_learn = [Adamax, Nadam, Adam]
