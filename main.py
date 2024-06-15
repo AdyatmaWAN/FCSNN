@@ -145,6 +145,8 @@ def run(experiment):
         y_test = y_test[test_mask]
 
         y_train[y_train == 4] = 1
+        y_val[y_val == 4] = 1
+        y_test[y_test == 4] = 1
         pass
     elif experiment == '2':
         #0-3 is 0 and 4 is 1
