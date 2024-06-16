@@ -53,8 +53,8 @@ def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn
 
     if experiment == '1':
         classifier = snn_1(n_class)
-    # elif experiment == '2':
-    #     classifier = snn_2(n_class)
+    elif experiment == '2':
+        classifier = snn_1(n_class)
     # elif experiment == '3':
     #     classifier = snn_3(n_class)
     else:
