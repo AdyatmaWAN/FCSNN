@@ -2,6 +2,7 @@ import os
 import random
 import sys
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.layers import CategoryEncoding
 from tensorflow.keras.optimizers import Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam, Ftrl
@@ -100,6 +101,35 @@ def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn
     print("Precision: ",prec)
     print("Recall: ",rec)
     print(confus)
+
+    test_results = pd.DataFrame({
+        "sqrt": [sqrt],
+        "batch": [batch],
+        "lr": [lr],
+        "Optimization": [opt],
+        # "Fold": [fold],
+        "Test F1": [fm],
+        "Test Accuracy": [acc],
+        "Test Precision": [prec],
+        "Test Recall": [rec],
+        # "Test Specificity": [test_specificity],
+        # "Test AUC": [test_auc]
+    })
+
+    # Determine Excel file path
+    excel_file_path = f"test_results.xlsx"
+
+    # Check if Excel file exists
+    if os.path.isfile(excel_file_path):
+        # If file exists, open it and append new data
+        existing_data = pd.read_excel(excel_file_path)
+        combined_data = pd.concat([existing_data, test_results], ignore_index=True)
+        combined_data.to_excel(excel_file_path, index=False)
+        print("Test results appended to existing Excel file:", excel_file_path)
+    else:
+        # If file doesn't exist, create a new Excel file and save the data
+        test_results.to_excel(excel_file_path, index=False)
+        print("Test results saved to new Excel file:", excel_file_path)
 
     return fm, model
 
