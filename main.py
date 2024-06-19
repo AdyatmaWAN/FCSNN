@@ -254,7 +254,7 @@ def run(experiment, sqrt, data):
         for opt in opt_learn:
             for lr in learn_rate:
                 for batch in learn_batch:
-                    fm, model = train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics, fm_, opt, lr, batch, sqrt)
+                    fm, model = train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics, opt, lr, batch, sqrt)
                     print("LR: ", lr, " Batch: ", batch," F-Measure test: ", fm)
                     if(fm_ < fm):
                         best_lr = lr
