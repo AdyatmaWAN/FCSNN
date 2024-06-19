@@ -53,9 +53,9 @@ def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn
     print(lr, batch)
 
     if experiment == '1':
-        classifier = snn_1(n_class)
+        classifier = snn_1(n_class, sqrt)
     elif experiment == '2':
-        classifier = snn_1(n_class)
+        classifier = snn_1(n_class, sqrt)
     # elif experiment == '3':
     #     classifier = snn_3(n_class)
     else:
