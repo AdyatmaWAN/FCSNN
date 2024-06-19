@@ -104,7 +104,7 @@ def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn
     return fm, model
 
 
-def run(experiment, sqrt):
+def run(experiment, sqrt, data):
     # os.environ["CUDA_VISIBLE_DEVICES"]="0, 1, 2, 3, 4, 5, 6, 7"
     os.environ["CUDA_VISIBLE_DEVICES"]="6"
 
@@ -131,7 +131,7 @@ def run(experiment, sqrt):
         y_test = np.load(f)
     f.close()
 
-    if experiment == '1':
+    if data == 1:
         #only 0 and 4
         train_mask = np.isin(y_train, [0, 4])
         val_mask = np.isin(y_val, [0, 4])
@@ -148,7 +148,7 @@ def run(experiment, sqrt):
         y_val[y_val == 4] = 1
         y_test[y_test == 4] = 1
         pass
-    elif experiment == '2':
+    elif data  == 2:
         #0-3 is 0 and 4 is 1
         y_train[y_train == 1] = 0
         y_train[y_train == 2] = 0
@@ -165,7 +165,7 @@ def run(experiment, sqrt):
         y_val[y_val == 3] = 0
         y_val[y_val == 4] = 1
 
-    elif experiment == '3':
+    elif data == 3:
         #all individual classes
 
         # TODO: No class weight
@@ -188,7 +188,7 @@ def run(experiment, sqrt):
 
     fm_ = -999
 
-    if int(experiment) <= 4:
+    if int(experiment) <= 3 and int(experiment) > 0:
         learn_rate = [0.005, 0.001, 0.0001]
         learn_batch = [512, 64, 16]
         opt_learn = [Adamax, Nadam, Adam]
@@ -248,4 +248,9 @@ if __name__ == '__main__':
         sqrt = False
     else:
         sqrt = True
-    run(experiment, sqrt)
+
+    if len(sys.argv) == 4:
+        data = int(experiment)
+    else:
+        data = int(sys.argv[4])
+    run(experiment, sqrt, data)
