@@ -136,7 +136,7 @@ def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn
 
 def run(experiment, sqrt, data):
     # os.environ["CUDA_VISIBLE_DEVICES"]="0, 1, 2, 3, 4, 5, 6, 7"
-    os.environ["CUDA_VISIBLE_DEVICES"]="6"
+    os.environ["CUDA_VISIBLE_DEVICES"]="7"
 
     SEED=1
 
@@ -269,7 +269,7 @@ def run(experiment, sqrt, data):
     print(best_model.summary())
     fm_ = str(fm_)
     fm_ = fm_[0:6]
-    best_model.save('saved_model/'+str(fm_)+'_'+str(best_batch)+'_'+str(opt_)+'_lr_'+str(best_lr)+'_exp_'+str(experiment)+'_sqrt_'+str(sqrt)+'_classweighted_blur16x16_.h5')
+    best_model.save('saved_model/'+str(fm_)+'_'+str(best_batch)+'_'+str(opt_)+'_lr_'+str(best_lr)+'_exp_'+str(experiment)+'_sqrt_'+str(sqrt)+'_blur16x16_.h5')
 
 if __name__ == '__main__':
     experiment = sys.argv[1]
