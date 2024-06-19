@@ -61,7 +61,7 @@ def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn
     else:
         classifier = snn(n_class)
 
-    model = classifier.get_model(input_shape=(64, 64, 1), residual = True, sqrt = sqrt)
+    model = classifier.get_model(input_shape=(64, 64, 1), residual = True)
 
 
     print(model.summary())
@@ -70,7 +70,7 @@ def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn
 
     if(str(opt) == "<class 'keras.optimizer_v2.gradient_descent.SGD'>"):
         optimizer = opt(learning_rate=lr, momentum=0.9)
-        print("hoi")
+        # print("hoi")
     else:
         optimizer = opt(learning_rate=lr)
 
