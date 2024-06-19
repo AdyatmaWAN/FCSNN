@@ -48,7 +48,7 @@ def set_global_determinism(seed=1):
     tf.keras.backend.set_floatx('float32')
 
 
-def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics, opt, lr, batch):
+def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics, opt, lr, batch, sqrt):
     print(lr, batch)
 
     if experiment == '1':
@@ -60,7 +60,7 @@ def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn
     else:
         classifier = snn(n_class)
 
-    model = classifier.get_model(input_shape=(64, 64, 1), residual = True)
+    model = classifier.get_model(input_shape=(64, 64, 1), residual = True, sqrt = sqrt)
 
 
     print(model.summary())
@@ -104,7 +104,7 @@ def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn
     return fm, model
 
 
-def run(experiment):
+def run(experiment, sqrt):
     # os.environ["CUDA_VISIBLE_DEVICES"]="0, 1, 2, 3, 4, 5, 6, 7"
     os.environ["CUDA_VISIBLE_DEVICES"]="6"
 
@@ -194,7 +194,8 @@ def run(experiment):
         opt_learn = [Adamax, Nadam, Adam]
 
         fm, model = train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics,
-                                opt_learn[int(experiment)-1], learn_rate[int(experiment)-1], learn_batch[int(experiment)-1])
+                                opt_learn[int(experiment)-1], learn_rate[int(experiment)-1], learn_batch[int(experiment)-1],
+                                sqrt)
 
         best_lr = learn_rate[int(experiment)-1]
         best_batch = learn_batch[int(experiment)-1]
@@ -223,7 +224,7 @@ def run(experiment):
         for opt in opt_learn:
             for lr in learn_rate:
                 for batch in learn_batch:
-                    fm, model = train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics, fm_, opt, lr, batch)
+                    fm, model = train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics, fm_, opt, lr, batch, sqrt)
                     print("LR: ", lr, " Batch: ", batch," F-Measure test: ", fm)
                     if(fm_ < fm):
                         best_lr = lr
@@ -242,4 +243,5 @@ def run(experiment):
 
 if __name__ == '__main__':
     experiment = sys.argv[1]
-    run(experiment)
+    sqrt = sys.argv[2]
+    run(experiment, sqrt)
