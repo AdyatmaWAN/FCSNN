@@ -239,7 +239,7 @@ def run(experiment, sqrt):
     print(best_model.summary())
     fm_ = str(fm_)
     fm_ = fm_[0:6]
-    best_model.save('saved_model/'+str(fm_)+'_'+str(best_batch)+'_'+str(opt_)+'_lr_'+str(best_lr)+'_sqrt_'+str(sqrt)+'_classweighted_blur16x16_.h5')
+    best_model.save('saved_model/'+str(fm_)+'_'+str(best_batch)+'_'+str(opt_)+'_lr_'+str(best_lr)+'_exp_'+str(experiment)+'_sqrt_'+str(sqrt)+'_classweighted_blur16x16_.h5')
 
 if __name__ == '__main__':
     experiment = sys.argv[1]
