@@ -243,5 +243,9 @@ def run(experiment, sqrt):
 
 if __name__ == '__main__':
     experiment = sys.argv[1]
-    sqrt = sys.argv[2]
+
+    if sys.argv[2] == 'None':
+        sqrt = False
+    else:
+        sqrt = True
     run(experiment, sqrt)
