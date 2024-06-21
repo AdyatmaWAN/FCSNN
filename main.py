@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from sklearn.model_selection import StratifiedKFold
 from tensorflow.keras.layers import CategoryEncoding
 from tensorflow.keras.optimizers import Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam, Ftrl
 from model import snn
@@ -49,7 +50,7 @@ def set_global_determinism(seed=1):
     tf.keras.backend.set_floatx('float32')
 
 
-def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics, opt, lr, batch, sqrt):
+def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics, opt, lr, batch, sqrt, fold):
     print(lr, batch)
 
     if experiment == '1':
@@ -76,19 +77,50 @@ def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn
 
 
     model.compile(loss=loss_fn, optimizer=optimizer, metrics=metrics)
-    model.fit([X_train[:, 0], X_train[:, 1]], y_train[:], batch_size=batch, epochs=100, validation_data=([X_val[:, 0], X_val[:, 1]], y_val[:]), callbacks = [reduce_lr, early_s], verbose=1)
+    model.fit([X_train_fold[:, 0], X_train_fold[:, 1]], y_train_fold[:], batch_size=batch, epochs=100, validation_data=([X_val_fold[:, 0], X_val_fold[:, 1]], y_val_fold[:]), callbacks = [reduce_lr, early_s], verbose=1)
 
 
-    #------------------Training
-    predicted = model([X_train[:, 0], X_train[:, 1]], training = False)
+    #------------------Validation
+    predicted = model([X_val[:, 0], X_val[:, 1]], training = False)
 
-    acc, fm, prec, rec, confus = eval_cnn(predicted, y_train, n_class)
+    acc, fm, prec, rec, confus = eval_cnn(predicted, y_val, n_class)
 
     print("Accuracy: ", acc)
     print("F-Measure: ",fm)
     print("Precision: ",prec)
     print("Recall: ",rec)
     print(confus)
+
+    val_results = pd.DataFrame({
+        "sqrt": [sqrt],
+        "batch": [batch],
+        "lr": [lr],
+        "Optimization": [opt],
+        "Fold": [fold],
+        "Test F1": [fm],
+        "Test Accuracy": [acc],
+        "Test Precision": [prec],
+        "Test Recall": [rec],
+        # "Test Specificity": [test_specificity],
+        # "Test AUC": [test_auc]
+    })
+
+    # Determine Excel file path
+    excel_file_path = f"val_results.xlsx"
+
+    # Check if Excel file exists
+    if os.path.isfile(excel_file_path):
+        # If file exists, open it and append new data
+        existing_data = pd.read_excel(excel_file_path)
+        combined_data = pd.concat([existing_data, val_results], ignore_index=True)
+        combined_data.to_excel(excel_file_path, index=False)
+        print("Test results appended to existing Excel file:", excel_file_path)
+    else:
+        # If file doesn't exist, create a new Excel file and save the data
+        val_results.to_excel(excel_file_path, index=False)
+        print("Test results saved to new Excel file:", excel_file_path)
+
+
 
     #------------------Testing
     print("--------------------------------------------------------------------------------")
@@ -107,7 +139,7 @@ def train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn
         "batch": [batch],
         "lr": [lr],
         "Optimization": [opt],
-        # "Fold": [fold],
+        "Fold": [fold],
         "Test F1": [fm],
         "Test Accuracy": [acc],
         "Test Precision": [prec],
@@ -205,6 +237,9 @@ def run(experiment, sqrt, data):
 
     # -
 
+    n_splits = 5
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
+
     if(n_class > 2):
         #     y_train = CategoryEncoding(num_tokens=5, output_mode="one_hot")(y_train)
         #     y_val = CategoryEncoding(num_tokens=5, output_mode="one_hot")(y_val)
@@ -217,21 +252,39 @@ def run(experiment, sqrt, data):
 
 
     fm_ = -999
-
+    best_fold = 100
+    count = 0
     if int(experiment) <= 3 and int(experiment) > 0:
         learn_rate = [0.005, 0.001, 0.0001]
         learn_batch = [512, 64, 16]
         opt_learn = [Adamax, Nadam, Adam]
 
-        fm, model = train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics,
-                                opt_learn[int(experiment)-1], learn_rate[int(experiment)-1], learn_batch[int(experiment)-1],
-                                sqrt)
+        # fm, model = train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics,
+        #                         opt_learn[int(experiment)-1], learn_rate[int(experiment)-1], learn_batch[int(experiment)-1],
+        #                         sqrt)
+        for train_index, test_index in skf.split(X_train, y_train):
+            X_train_fold, X_val_fold = X_train[train_index], X_train[test_index]
+            y_train_fold, y_val_fold = y_train[train_index], y_train[test_index]
 
-        best_lr = learn_rate[int(experiment)-1]
-        best_batch = learn_batch[int(experiment)-1]
-        fm_ = fm
-        best_model = model
-        opt_ = opt_learn[int(experiment)-1]
+            fm, model = train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_val, y_val, X_test, y_test,
+                                    n_class, loss_fn, metrics, opt_learn[int(experiment)-1], learn_rate[int(experiment)-1],
+                                    learn_batch[int(experiment)-1], sqrt, count)
+
+            print("Fold F-Measure: ", fm)
+            if fm_ < fm:
+                best_lr = learn_rate[int(experiment)-1]
+                best_batch = learn_batch[int(experiment)-1]
+                fm_ = fm
+                best_model = model
+                opt_ = opt_learn[int(experiment)-1]
+                best_fold = count
+            count += 1
+
+        # best_lr = learn_rate[int(experiment)-1]
+        # best_batch = learn_batch[int(experiment)-1]
+        # fm_ = fm
+        # best_model = model
+        # opt_ = opt_learn[int(experiment)-1]
 
     else:
 
@@ -254,18 +307,36 @@ def run(experiment, sqrt, data):
         for opt in opt_learn:
             for lr in learn_rate:
                 for batch in learn_batch:
-                    fm, model = train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics, opt, lr, batch, sqrt)
-                    print("LR: ", lr, " Batch: ", batch," F-Measure test: ", fm)
-                    if(fm_ < fm):
-                        best_lr = lr
-                        best_batch = batch
-                        fm_ = fm
-                        best_model = model
-                        opt_ = opt
+                    # fm, model = train_model(X_train, y_train, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics, opt, lr, batch, sqrt)
+                    # print("LR: ", lr, " Batch: ", batch," F-Measure test: ", fm)
+                    # if(fm_ < fm):
+                    #     best_lr = lr
+                    #     best_batch = batch
+                    #     fm_ = fm
+                    #     best_model = model
+                    #     opt_ = opt
+                    count = 1
+                    for train_index, test_index in skf.split(X_train, y_train):
+                        X_train_fold, X_val_fold = X_train[train_index], X_train[test_index]
+                        y_train_fold, y_val_fold = y_train[train_index], y_train[test_index]
+
+                        fm, model = train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_val, y_val, X_test, y_test,
+                                                n_class, loss_fn, metrics, opt, lr, batch, sqrt, count)
+                        print("Opt: ", opt, " LR: ", lr, " Batch: ", batch, " Fold F-Measure: ", fm)
+                        if fm_ < fm:
+                            best_lr = lr
+                            best_batch = batch
+                            fm_ = fm
+                            best_model = model
+                            opt_ = opt
+                            best_fold = count
+                        count += 1
+
 
     print("Best learning_rate: ",best_lr)
     print("Best batch: ",best_batch)
     print("Best accuracy: ",fm_)
+    print("Best fold: ",best_fold)
     print(best_model.summary())
     fm_ = str(fm_)
     fm_ = fm_[0:6]
