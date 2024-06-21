@@ -97,10 +97,10 @@ def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_val, y_val
         "lr": [lr],
         "Optimization": [opt],
         "Fold": [fold],
-        "Test F1": [fm],
-        "Test Accuracy": [acc],
-        "Test Precision": [prec],
-        "Test Recall": [rec],
+        "val F1": [fm],
+        "val Accuracy": [acc],
+        "val Precision": [prec],
+        "val Recall": [rec],
         # "Test Specificity": [test_specificity],
         # "Test AUC": [test_auc]
     })
