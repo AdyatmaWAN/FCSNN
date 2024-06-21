@@ -77,7 +77,9 @@ def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_val, y_val
 
 
     model.compile(loss=loss_fn, optimizer=optimizer, metrics=metrics)
-    model.fit([X_train_fold[:, 0], X_train_fold[:, 1]], y_train_fold[:], batch_size=batch, epochs=100, validation_data=([X_val_fold[:, 0], X_val_fold[:, 1]], y_val_fold[:]), callbacks = [reduce_lr, early_s], verbose=1)
+    model.fit([X_train_fold[:, 0], X_train_fold[:, 1]], y_train_fold[:], batch_size=batch, epochs=1000,
+              validation_data=([X_val_fold[:, 0], X_val_fold[:, 1]], y_val_fold[:]), callbacks = [reduce_lr, early_s],
+              verbose=1)
 
 
     #------------------Validation
