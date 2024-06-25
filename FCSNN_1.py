@@ -169,7 +169,7 @@ class snn_1:
             model = Model(inputs, outputs)
         return model
 
-    def get_model(self, input_shape, residual = True, sqr = False):
+    def get_model(self, input_shape, sqr, residual = True):
         imgA = Input(shape=input_shape)
         imgB = Input(shape=input_shape)
         featureExtractor1 = self.__build_siamese_model(input_shape,res=residual)
