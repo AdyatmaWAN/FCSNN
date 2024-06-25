@@ -46,7 +46,7 @@ def set_global_determinism(seed=1):
 
     tf.config.threading.set_inter_op_parallelism_threads(1)
     tf.config.threading.set_intra_op_parallelism_threads(1)
-    tf.keras.backend.set_floatx('float32')
+    keras.backend.set_floatx('float32')
 
 
 def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_test, n_class, loss_fn, metrics, opt, lr, batch, sqr, fold):
