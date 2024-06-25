@@ -364,7 +364,7 @@ if __name__ == '__main__':
 
     # Check if Excel file exists
     if os.path.isfile(excel_file_path):
-        
+        os.remove(excel_file_path)
 
     experiment = sys.argv[1]
 
