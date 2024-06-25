@@ -254,10 +254,10 @@ def run(experiment, sqrt, data):
         #     y_train = CategoryEncoding(num_tokens=5, output_mode="one_hot")(y_train)
         #     y_val = CategoryEncoding(num_tokens=5, output_mode="one_hot")(y_val)
         #     y_test = CategoryEncoding(num_tokens=5, output_mode="one_hot")(y_test)
-        loss_fn = tf.keras.losses.SparseCategoricalCrossentropy()
+        loss_fn = keras.losses.SparseCategoricalCrossentropy()
         metrics = ['accuracy']
     else:
-        loss_fn = tf.keras.losses.BinaryCrossentropy()
+        loss_fn = keras.losses.BinaryCrossentropy()
         metrics = ['binary_accuracy']
 
 
