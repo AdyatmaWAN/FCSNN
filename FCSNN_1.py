@@ -176,7 +176,7 @@ class snn_1:
         distance = Subtract()([featsA, featsB])
 
         # distance = K.abs(distance)
-        distance = tf.math.abs(distance)
+        distance = tf.abs(distance)
 
         if sqr:
             distance = tf.math.square(distance)
