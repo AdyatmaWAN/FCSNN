@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import keras
 from sklearn.model_selection import StratifiedKFold
 from keras.optimizers import Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam, Ftrl
 from model import snn
