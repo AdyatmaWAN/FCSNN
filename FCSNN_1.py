@@ -166,7 +166,7 @@ class snn_1:
             model = Model(inputs, outputs)
         return model
 
-    def get_model(self, input_shape, residual = True, sqrt = False):
+    def get_model(self, input_shape, residual = True, sqr = False):
         imgA = Input(shape=input_shape)
         imgB = Input(shape=input_shape)
         featureExtractor1 = self.__build_siamese_model(input_shape,res=residual)
@@ -177,9 +177,8 @@ class snn_1:
 
         distance = K.abs(distance)
 
-        if sqrt:
+        if sqr:
             distance = tf.math.square(distance)
-            # distance = K.sqrt(K.sum(distance, axis=1))
         else:
             pass
 

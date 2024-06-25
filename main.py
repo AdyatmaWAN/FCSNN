@@ -50,13 +50,13 @@ def set_global_determinism(seed=1):
     tf.keras.backend.set_floatx('float32')
 
 
-def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_test, n_class, loss_fn, metrics, opt, lr, batch, sqrt, fold):
+def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_test, n_class, loss_fn, metrics, opt, lr, batch, sqr, fold):
     print(lr, batch)
 
     if experiment == '1':
-        classifier = snn_1(n_class, sqrt)
+        classifier = snn_1(n_class, sqr)
     elif experiment == '2':
-        classifier = snn_1(n_class, sqrt)
+        classifier = snn_1(n_class, sqr)
     # elif experiment == '3':
     #     classifier = snn_3(n_class)
     else:
@@ -137,7 +137,7 @@ def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_te
     print(confus)
 
     test_results = pd.DataFrame({
-        "sqrt": [sqrt],
+        "sqr": [sqr],
         "batch": [batch],
         "lr": [lr],
         "Optimization": [opt],
@@ -359,6 +359,13 @@ def run(experiment, sqrt, data):
     best_model.save('saved_model/'+str(fm_)+'_'+str(best_batch)+'_'+str(opt_)+'_lr_'+str(best_lr)+'_exp_'+str(experiment)+'_sqrt_'+str(sqrt)+'_blur16x16_.h5')
 
 if __name__ == '__main__':
+
+    excel_file_path = f"test_results.xlsx"
+
+    # Check if Excel file exists
+    if os.path.isfile(excel_file_path):
+        
+
     experiment = sys.argv[1]
 
     if sys.argv[2] == 'None':
