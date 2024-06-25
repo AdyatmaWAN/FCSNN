@@ -9,6 +9,8 @@ from keras.layers import BatchNormalization, Subtract, Concatenate, Activation
 from keras.regularizers import l1_l2, l2
 import tensorflow as tf
 from keras import backend as K
+from keras.src.layers import Lambda
+
 tf.random.set_seed(1234)
 class snn_1:
     def __init__(self, numOfClass):
@@ -166,6 +168,12 @@ class snn_1:
             model = Model(inputs, outputs)
         return model
 
+    def absoluteLayer(x):
+        return tf.math.abs(x)
+
+    def squareLayer(x):
+        return tf.math.square(x)
+
     def get_model(self, input_shape, residual = True, sqr = False):
         imgA = Input(shape=input_shape)
         imgB = Input(shape=input_shape)
@@ -177,9 +185,11 @@ class snn_1:
 
         # distance = K.abs(distance)
         # distance = tf.abs(distance)
+        distance = Lambda(self.absoluteLayer)(distance)
 
         if sqr:
-            distance = tf.math.square(distance)
+            # distance = tf.math.square(distance)
+            distance = Lambda(self.squareLayer)(distance)
         else:
             pass
 
