@@ -298,8 +298,14 @@ def run(experiment, sqrt, data):
 
     else:
 
-        # #Grid
-        opt_learn = [Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam, Ftrl]
+        # # #Grid
+        # opt_learn = [Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam, Ftrl]
+        # # fm_ = -999
+        # learn_rate = [0.0001,0.0005,0.001,0.005]
+        #
+        # learn_batch = [512, 256, 128, 64, 32, 16, 8]
+
+        opt_learn = [Nadam, Adam, Adamax]
         # fm_ = -999
         learn_rate = [0.0001,0.0005,0.001,0.005]
 
