@@ -170,7 +170,7 @@ def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_te
 
 def run(experiment, sqrt, data):
     # os.environ["CUDA_VISIBLE_DEVICES"]="0, 1, 2, 3, 4, 5, 6, 7"
-    os.environ["CUDA_VISIBLE_DEVICES"]="7"
+    os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
     SEED=1
 
