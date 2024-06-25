@@ -184,7 +184,7 @@ class snn_1:
 
         if sqr:
             # distance = tf.math.square(distance)
-            distance = SquareLayer(distance)
+            distance = SquareLayer()(distance)
         else:
             pass
 
