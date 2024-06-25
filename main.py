@@ -54,15 +54,15 @@ def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_te
     print(lr, batch)
 
     if experiment == '1':
-        classifier = snn_1(n_class, sqr)
+        classifier = snn_1(n_class)
     elif experiment == '2':
-        classifier = snn_1(n_class, sqr)
+        classifier = snn_1(n_class)
     # elif experiment == '3':
     #     classifier = snn_3(n_class)
     else:
         classifier = snn(n_class)
 
-    model = classifier.get_model(input_shape=(64, 64, 1), residual = True)
+    model = classifier.get_model(input_shape=(64, 64, 1), residual = True, sqr= sqr)
 
 
     print(model.summary())
