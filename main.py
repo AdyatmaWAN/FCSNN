@@ -50,7 +50,7 @@ def set_global_determinism(seed=1):
     tf.keras.backend.set_floatx('float32')
 
 
-def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_val, y_val, X_test, y_test, n_class, loss_fn, metrics, opt, lr, batch, sqrt, fold):
+def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_test, n_class, loss_fn, metrics, opt, lr, batch, sqrt, fold):
     print(lr, batch)
 
     if experiment == '1':
@@ -82,45 +82,45 @@ def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_val, y_val
               verbose=1)
 
 
-    #------------------Validation
-    predicted = model([X_val[:, 0], X_val[:, 1]], training = False)
-
-    acc, fm, prec, rec, confus = eval_cnn(predicted, y_val, n_class)
-
-    print("Accuracy: ", acc)
-    print("F-Measure: ",fm)
-    print("Precision: ",prec)
-    print("Recall: ",rec)
-    print(confus)
-
-    val_results = pd.DataFrame({
-        "sqrt": [sqrt],
-        "batch": [batch],
-        "lr": [lr],
-        "Optimization": [opt],
-        "Fold": [fold],
-        "val F1": [fm],
-        "val Accuracy": [acc],
-        "val Precision": [prec],
-        "val Recall": [rec],
-        # "Test Specificity": [test_specificity],
-        # "Test AUC": [test_auc]
-    })
-
-    # Determine Excel file path
-    excel_file_path = f"val_results.xlsx"
-
-    # Check if Excel file exists
-    if os.path.isfile(excel_file_path):
-        # If file exists, open it and append new data
-        existing_data = pd.read_excel(excel_file_path)
-        combined_data = pd.concat([existing_data, val_results], ignore_index=True)
-        combined_data.to_excel(excel_file_path, index=False)
-        print("Test results appended to existing Excel file:", excel_file_path)
-    else:
-        # If file doesn't exist, create a new Excel file and save the data
-        val_results.to_excel(excel_file_path, index=False)
-        print("Test results saved to new Excel file:", excel_file_path)
+    # #------------------Validation
+    # predicted = model([X_val[:, 0], X_val[:, 1]], training = False)
+    #
+    # acc, fm, prec, rec, confus = eval_cnn(predicted, y_val, n_class)
+    #
+    # print("Accuracy: ", acc)
+    # print("F-Measure: ",fm)
+    # print("Precision: ",prec)
+    # print("Recall: ",rec)
+    # print(confus)
+    #
+    # val_results = pd.DataFrame({
+    #     "sqrt": [sqrt],
+    #     "batch": [batch],
+    #     "lr": [lr],
+    #     "Optimization": [opt],
+    #     "Fold": [fold],
+    #     "val F1": [fm],
+    #     "val Accuracy": [acc],
+    #     "val Precision": [prec],
+    #     "val Recall": [rec],
+    #     # "Test Specificity": [test_specificity],
+    #     # "Test AUC": [test_auc]
+    # })
+    #
+    # # Determine Excel file path
+    # excel_file_path = f"val_results.xlsx"
+    #
+    # # Check if Excel file exists
+    # if os.path.isfile(excel_file_path):
+    #     # If file exists, open it and append new data
+    #     existing_data = pd.read_excel(excel_file_path)
+    #     combined_data = pd.concat([existing_data, val_results], ignore_index=True)
+    #     combined_data.to_excel(excel_file_path, index=False)
+    #     print("Test results appended to existing Excel file:", excel_file_path)
+    # else:
+    #     # If file doesn't exist, create a new Excel file and save the data
+    #     val_results.to_excel(excel_file_path, index=False)
+    #     print("Test results saved to new Excel file:", excel_file_path)
 
 
 
@@ -195,24 +195,32 @@ def run(experiment, sqrt, data):
         y_test = np.load(f)
     f.close()
 
+    X_combined = np.concatenate((X_train, X_val), axis=0)
+    y_combined = np.concatenate((y_train, y_val), axis=0)
+
     if data == 1:
         #only 0 and 4
-        train_mask = np.isin(y_train, [0, 4])
-        val_mask = np.isin(y_val, [0, 4])
+        # train_mask = np.isin(y_train, [0, 4])
+        # val_mask = np.isin(y_val, [0, 4])
+        train_mask = np.isin(y_combined, [0, 4])
         test_mask = np.isin(y_test, [0, 4])
 
-        X_train = X_train[train_mask]
-        y_train = y_train[train_mask]
-        X_val = X_val[val_mask]
-        y_val = y_val[val_mask]
+        # X_train = X_train[train_mask]
+        # y_train = y_train[train_mask]
+        # X_val = X_val[val_mask]
+        # y_val = y_val[val_mask]
+        X_train = X_combined[train_mask]
+        y_train = y_combined[train_mask]
         X_test = X_test[test_mask]
         y_test = y_test[test_mask]
 
         y_train[y_train == 4] = 1
-        y_val[y_val == 4] = 1
+        # y_val[y_val == 4] = 1
         y_test[y_test == 4] = 1
         pass
     elif data  == 2:
+        y_train = y_combined
+
         #0-3 is 0 and 4 is 1
         y_train[y_train == 1] = 0
         y_train[y_train == 2] = 0
@@ -224,10 +232,10 @@ def run(experiment, sqrt, data):
         y_test[y_test == 3] = 0
         y_test[y_test == 4] = 1
 
-        y_val[y_val == 1] = 0
-        y_val[y_val == 2] = 0
-        y_val[y_val == 3] = 0
-        y_val[y_val == 4] = 1
+        # y_val[y_val == 1] = 0
+        # y_val[y_val == 2] = 0
+        # y_val[y_val == 3] = 0
+        # y_val[y_val == 4] = 1
 
     elif data == 3:
         #all individual classes
@@ -268,7 +276,7 @@ def run(experiment, sqrt, data):
             X_train_fold, X_val_fold = X_train[train_index], X_train[test_index]
             y_train_fold, y_val_fold = y_train[train_index], y_train[test_index]
 
-            fm, model = train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_val, y_val, X_test, y_test,
+            fm, model = train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_test,
                                     n_class, loss_fn, metrics, opt_learn[int(experiment)-1], learn_rate[int(experiment)-1],
                                     learn_batch[int(experiment)-1], sqrt, count)
 
