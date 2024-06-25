@@ -5,15 +5,14 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from sklearn.model_selection import StratifiedKFold
-from tensorflow.keras.layers import CategoryEncoding
-from tensorflow.keras.optimizers import Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam, Ftrl
+from keras.optimizers import Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam, Ftrl
 from model import snn
 from FCSNN_1 import snn_1
 # from FCSNN_2 import snn_2
 # from FCSNN_3 import snn_3
 import time
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, f1_score
-from tensorflow.keras.callbacks import ReduceLROnPlateau, EarlyStopping
+from keras.callbacks import ReduceLROnPlateau, EarlyStopping
 
 def eval_cnn(predicted, y_test, n_class):
     if n_class == 2:

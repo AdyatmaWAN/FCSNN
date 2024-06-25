@@ -1,12 +1,12 @@
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input
-from tensorflow.keras.layers import Flatten
-from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.layers import Dropout
-from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.layers import BatchNormalization, Subtract, Concatenate, Activation
-from tensorflow.keras.regularizers import l1_l2, l2
+from keras.models import Model
+from keras.layers import Input
+from keras.layers import Flatten
+from keras.layers import Conv2D
+from keras.layers import Dense
+from keras.layers import Dropout
+from keras.layers import MaxPooling2D
+from keras.layers import BatchNormalization, Subtract, Concatenate, Activation
+from keras.regularizers import l1_l2, l2
 import tensorflow as tf
 from keras import backend as K
 tf.random.set_seed(1234)
