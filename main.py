@@ -336,7 +336,7 @@ def run(experiment, sqrt, data):
                         X_train_fold, X_val_fold = X_train[train_index], X_train[test_index]
                         y_train_fold, y_val_fold = y_train[train_index], y_train[test_index]
 
-                        fm, model = train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_val, y_val, X_test, y_test,
+                        fm, model = train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_test,
                                                 n_class, loss_fn, metrics, opt, lr, batch, sqrt, count)
                         print("Opt: ", opt, " LR: ", lr, " Batch: ", batch, " Fold F-Measure: ", fm)
                         if fm_ < fm:
