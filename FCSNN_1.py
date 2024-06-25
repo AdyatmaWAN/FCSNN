@@ -7,6 +7,7 @@ from keras.layers import Dropout
 from keras.layers import MaxPooling2D
 from keras.layers import BatchNormalization, Subtract, Concatenate, Activation
 from keras.regularizers import l1_l2, l2
+from keras.layers import Layer
 import tensorflow as tf
 from keras import backend as K
 from keras.src.layers import Lambda
@@ -168,12 +169,6 @@ class snn_1:
             model = Model(inputs, outputs)
         return model
 
-    def absoluteLayer(x):
-        return tf.math.abs(x)
-
-    def squareLayer(x):
-        return tf.math.square(x)
-
     def get_model(self, input_shape, residual = True, sqr = False):
         imgA = Input(shape=input_shape)
         imgB = Input(shape=input_shape)
@@ -185,11 +180,11 @@ class snn_1:
 
         # distance = K.abs(distance)
         # distance = tf.abs(distance)
-        distance = Lambda(self.absoluteLayer)(distance)
+        distance = AbsoluteLayer()(distance)
 
         if sqr:
             # distance = tf.math.square(distance)
-            distance = Lambda(self.squareLayer)(distance)
+            distance = SquareLayer(distance)
         else:
             pass
 
@@ -203,3 +198,11 @@ class snn_1:
         model = Model(inputs=[imgA, imgB], outputs=outputs)
 
         return model
+
+class AbsoluteLayer(Layer):
+    def call(self, x):
+        return tf.math.abs(x)
+
+class SquareLayer(Layer):
+    def call(self, x):
+        return tf.math.square(x)
