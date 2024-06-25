@@ -175,7 +175,8 @@ class snn_1:
         featsB = featureExtractor1(imgB)
         distance = Subtract()([featsA, featsB])
 
-        distance = K.abs(distance)
+        # distance = K.abs(distance)
+        distance = tf.math.abs(distance)
 
         if sqr:
             distance = tf.math.square(distance)
