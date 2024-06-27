@@ -380,7 +380,7 @@ if __name__ == '__main__':
         else:
             sqrt = True
 
-    if len(sys.argv) == 3:
+    if len(sys.argv) == 3 or len(sys.argv) == 2:
         data = int(experiment)
     else:
         data = int(sys.argv[4])
