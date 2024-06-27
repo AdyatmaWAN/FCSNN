@@ -372,12 +372,15 @@ if __name__ == '__main__':
 
     experiment = sys.argv[1]
 
-    if sys.argv[2] == 'None':
+    if len(sys.argv) == 2:
         sqrt = False
     else:
-        sqrt = True
+        if sys.argv[2] == 'None':
+            sqrt = False
+        else:
+            sqrt = True
 
-    if len(sys.argv) == 4:
+    if len(sys.argv) == 3:
         data = int(experiment)
     else:
         data = int(sys.argv[4])
