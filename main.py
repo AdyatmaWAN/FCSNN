@@ -264,7 +264,7 @@ def run(experiment, sqrt, data):
     fm_ = -999
     best_fold = 100
     count = 0
-    if int(experiment) <= 3 and int(experiment) > 0:
+    if int(experiment) <= 0 and int(experiment) > 0:
         learn_rate = [0.005, 0.001, 0.0001]
         learn_batch = [512, 64, 16]
         opt_learn = [Adamax, Nadam, Adam]
@@ -299,11 +299,11 @@ def run(experiment, sqrt, data):
     else:
 
         # # #Grid
-        # opt_learn = [Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam, Ftrl]
-        # # fm_ = -999
-        # learn_rate = [0.0001,0.0005,0.001,0.005]
-        #
-        # learn_batch = [512, 256, 128, 64, 32, 16, 8]
+        opt_learn = [Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam, Ftrl,]
+        # fm_ = -999
+        learn_rate = [0.0001,0.0005,0.001,0.005]
+
+        learn_batch = [512, 256, 128, 64, 32, 16, 8]
 
         # opt_learn = [Nadam, Adam, Adamax]
         # # fm_ = -999
@@ -311,9 +311,9 @@ def run(experiment, sqrt, data):
         #
         # learn_batch = [512, 256, 128, 64, 32, 16, 8]
 
-        learn_rate = [0.005, 0.001, 0.0001]
-        learn_batch = [512, 64, 16]
-        opt_learn = [Adamax, Nadam, Adam]
+        # learn_rate = [0.005, 0.001, 0.0001]
+        # learn_batch = [512, 64, 16]
+        # opt_learn = [Adamax, Nadam, Adam]
 
         # #Grid
         # learn_rate = [0.001]
@@ -342,6 +342,7 @@ def run(experiment, sqrt, data):
 
                         fm, model = train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_test,
                                                 n_class, loss_fn, metrics, opt, lr, batch, sqrt, count)
+
                         print("Opt: ", opt, " LR: ", lr, " Batch: ", batch, " Fold F-Measure: ", fm)
                         if fm_ < fm:
                             best_lr = lr
