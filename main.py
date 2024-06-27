@@ -67,7 +67,7 @@ def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_te
 
     print(model.summary())
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.4,patience=2, min_lr=0.00001)
-    early_s = EarlyStopping(monitor='val_loss', patience=100)
+    early_s = EarlyStopping(monitor='val_loss', patience=25, min_delta=0.00001)
 
     if(str(opt) == "<class 'keras.optimizer_v2.gradient_descent.SGD'>"):
         optimizer = opt(learning_rate=lr, momentum=0.9)
@@ -77,7 +77,7 @@ def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_te
 
 
     model.compile(loss=loss_fn, optimizer=optimizer, metrics=metrics)
-    model.fit([X_train_fold[:, 0], X_train_fold[:, 1]], y_train_fold[:], batch_size=batch, epochs=1000,
+    model.fit([X_train_fold[:, 0], X_train_fold[:, 1]], y_train_fold[:], batch_size=batch, epochs=250,
               validation_data=([X_val_fold[:, 0], X_val_fold[:, 1]], y_val_fold[:]), callbacks = [reduce_lr, early_s],
               verbose=1)
 
@@ -305,11 +305,15 @@ def run(experiment, sqrt, data):
         #
         # learn_batch = [512, 256, 128, 64, 32, 16, 8]
 
-        opt_learn = [Nadam, Adam, Adamax]
-        # fm_ = -999
-        learn_rate = [0.0001,0.0005,0.001,0.005]
+        # opt_learn = [Nadam, Adam, Adamax]
+        # # fm_ = -999
+        # learn_rate = [0.0001,0.0005,0.001,0.005]
+        #
+        # learn_batch = [512, 256, 128, 64, 32, 16, 8]
 
-        learn_batch = [512, 256, 128, 64, 32, 16, 8]
+        learn_rate = [0.005, 0.001, 0.0001]
+        learn_batch = [512, 64, 16]
+        opt_learn = [Adamax, Nadam, Adam]
 
         # #Grid
         # learn_rate = [0.001]

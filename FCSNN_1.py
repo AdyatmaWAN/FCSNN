@@ -180,19 +180,21 @@ class snn_1:
 
         # distance = K.abs(distance)
         # distance = tf.abs(distance)
-        distance = AbsoluteLayer()(distance)
+        # distance = AbsoluteLayer()(distance)
 
         if sqr:
             # distance = tf.math.square(distance)
             distance = SquareLayer()(distance)
         else:
-            pass
+            distance = Activation('relu')(distance)
 
         if(self.n_class == 2):
             actv = "sigmoid"
             self.n_class = 1
         else:
             actv = "softmax"
+
+
 
         outputs = Dense(self.n_class, activation=actv, kernel_regularizer=l1_l2(0.01), bias_regularizer=l1_l2(0.01))(distance)
         model = Model(inputs=[imgA, imgB], outputs=outputs)
