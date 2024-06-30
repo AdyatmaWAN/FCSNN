@@ -12,8 +12,15 @@ from FCSNN_1 import snn_1
 # from FCSNN_2 import snn_2
 # from FCSNN_3 import snn_3
 import time
-from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, f1_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, f1_score, roc_curve, auc
 from keras.callbacks import ReduceLROnPlateau, EarlyStopping
+
+def mcc(tn, fp, fn, tp):
+    mcc = ((tp * tn) - (fp * fn)) / ((((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn) ) ** 0.5) + 0.0000000000000000001)
+    return mcc
+
+def normmcc(mcc_value):
+    return (mcc_value+1)/2
 
 def eval_cnn(predicted, y_test, n_class):
     if n_class == 2:
@@ -28,8 +35,14 @@ def eval_cnn(predicted, y_test, n_class):
     prec = precision_score(label, prediction, average='weighted')
     rec = recall_score(label, prediction, average='weighted')
     confus = confusion_matrix(label, prediction)
+    spec = recall_score(y_test, prediction, pos_label=0)
+    fpr, tpr, thresholds = roc_curve(y_test, prediction, pos_label=1)
+    auc_score = auc(fpr, tpr)
 
-    return acc, fm, prec, rec, confus
+    tn, fp, fn, tp = confus.ravel()
+    mcc_value = mcc(tn, fp, fn, tp)
+
+    return acc, fm, prec, rec, confus, spec, auc_score, mcc_value, normmcc(mcc_value)
 
 
 def set_seeds(seed=1):
@@ -77,7 +90,7 @@ def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_te
 
 
     model.compile(loss=loss_fn, optimizer=optimizer, metrics=metrics)
-    model.fit([X_train_fold[:, 0], X_train_fold[:, 1]], y_train_fold[:], batch_size=batch, epochs=250,
+    model.fit([X_train_fold[:, 0], X_train_fold[:, 1]], y_train_fold[:], batch_size=batch, epochs=100,
               validation_data=([X_val_fold[:, 0], X_val_fold[:, 1]], y_val_fold[:]), callbacks = [reduce_lr, early_s],
               verbose=1)
 
@@ -128,12 +141,20 @@ def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_te
     print("--------------------------------------------------------------------------------")
     predicted = model([X_test[:, 0], X_test[:, 1]], training = False)
 
-    acc, fm, prec, rec, confus = eval_cnn(predicted, y_test, n_class)
+    # return acc, fm, prec, rec, confus, spec, auc_score, mcc_value, normmcc(mcc_value)
 
+
+    acc, fm, prec, rec, confus, spec, auc_score, mcc_value, norm_mcc_value = eval_cnn(predicted, y_test, n_class)
+
+    print("Fold: "+str(fold)+", Batch: "+str(batch)+", LR: "+str(lr)+", Opt: "+str(opt))
     print("Accuracy: ", acc)
     print("F-Measure: ",fm)
     print("Precision: ",prec)
     print("Recall: ",rec)
+    print("Specificity: ",spec)
+    print("AUC: ",auc_score)
+    print("MCC: ",mcc_value)
+    print("Normalized MCC: ",norm_mcc_value)
     print(confus)
 
     test_results = pd.DataFrame({
@@ -146,6 +167,10 @@ def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_te
         "Test Accuracy": [acc],
         "Test Precision": [prec],
         "Test Recall": [rec],
+        "Test Specificity": [spec],
+        "Test AUC": [auc_score],
+        "Test MCC": [mcc_value],
+        "Test Normalized MCC": [norm_mcc_value]
         # "Test Specificity": [test_specificity],
         # "Test AUC": [test_auc]
     })
