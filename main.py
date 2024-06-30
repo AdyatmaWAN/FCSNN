@@ -170,7 +170,8 @@ def train_model(X_train_fold, y_train_fold, X_val_fold, y_val_fold, X_test, y_te
         "Test Specificity": [spec],
         "Test AUC": [auc_score],
         "Test MCC": [mcc_value],
-        "Test Normalized MCC": [norm_mcc_value]
+        "Test Normalized MCC": [norm_mcc_value],
+        "Confusion Matrix": [confus],
         # "Test Specificity": [test_specificity],
         # "Test AUC": [test_auc]
     })
