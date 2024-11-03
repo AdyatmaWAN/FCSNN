@@ -7,8 +7,9 @@ from tensorflow.keras.layers import Dropout
 from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import BatchNormalization, Subtract, Concatenate, Activation
 from tensorflow.keras.regularizers import l1_l2, l2
+from keras.layers import Layer
 import tensorflow as tf
-from keras import backend as K
+import tensorflow.keras.backend as K
 tf.random.set_seed(1234)
 class snn:
     def __init__(self, numOfClass):
@@ -174,7 +175,7 @@ class snn:
         featsA = featureExtractor1(imgA)
         featsB = featureExtractor1(imgB)
         distance = Subtract()([featsA, featsB])
-        distance = K.abs(distance)
+        distance = AbsoluteLayer()(distance)
 
 
         if(self.n_class == 2):
@@ -187,3 +188,18 @@ class snn:
         model = Model(inputs=[imgA, imgB], outputs=outputs)
 
         return model
+
+class AbsoluteLayer(Layer):
+    def call(self, x):
+        return tf.math.abs(x)
+
+class SquareLayer(Layer):
+    def call(self, x):
+        return tf.math.square(x)
+
+    # Example usage
+input_shape = (64, 64, 3)  # Example input shape for image data
+num_classes = 2
+snn_model = snn(num_classes)
+model = snn_model.get_model(input_shape)
+model.summary()
