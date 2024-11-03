@@ -80,24 +80,20 @@ else:
 
 
 def eval_cnn(predicted, y_test, n_class):
-    if(n_class==2):
-        prediction = []
-        label = []
-        for i in range(len(predicted)):
-            if(predicted[i]<0.5):
-                temp = 0
-            else:
-                temp = 1
-            prediction.append(temp)
-            label.append(y_test[i])
+    if n_class == 2:
+        prediction = [1 if p >= 0.5 else 0 for p in predicted]
+        label = y_test
     else:
-        prediction = []
-        label = []
-        for i in range(len(predicted)):
-            prediction.append(np.argmax(predicted[i]))
-            label.append(np.argmax(y_test[i]))
+        prediction = [np.argmax(p) for p in predicted]
+        label = [np.argmax(l) for l in y_test]
 
-    return label, prediction
+    acc = accuracy_score(label, prediction)
+    fm = f1_score(label, prediction, average='weighted')
+    prec = precision_score(label, prediction, average='weighted')
+    rec = recall_score(label, prediction, average='weighted')
+    confus = confusion_matrix(label, prediction)
+
+    return acc, fm, prec, rec, confus
 
 # opt_learn =  [Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam, Ftrl]
 # fm_ = -999
