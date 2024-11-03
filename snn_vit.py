@@ -93,8 +93,9 @@ class SquareLayer(Layer):
         return tf.math.square(x)
 
 # Example usage
-input_shape = (64, 64, 3)  # Example input shape for image data
-num_classes = 2
-snn_model = snn_vit(num_classes)
-model = snn_model.get_model(input_shape)
-model.summary()
+if __name__ == "__main__":
+    input_shape = (64, 64, 3)  # Example input shape for image data
+    num_classes = 2
+    snn_model = snn_vit(num_classes)
+    model = snn_model.get_model(input_shape)
+    model.summary()
