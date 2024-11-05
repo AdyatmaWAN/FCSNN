@@ -8,7 +8,7 @@ tf.random.set_seed(1234)
 class snn:
     def __init__(self, numOfClass):
         self.n_class = numOfClass
-        
+
     def __build_siamese_model(self, inputShape, res=True):
         inputs = Input(inputShape)
 
@@ -27,7 +27,7 @@ class snn:
         x = Activation('relu')(x)
 
         feat1 = MaxPooling2D(pool_size=(2, 2))(x)
-        feat1 = Dropout(0.5)(feat1)
+        # feat1 = Dropout(0.5)(feat1)
 
         x = Conv2D(64, (3, 3), strides=1, padding="same", kernel_regularizer=l1_l2(0.01), bias_regularizer=l1_l2(0.01))(feat1)
         x = BatchNormalization()(x)
@@ -42,7 +42,7 @@ class snn:
         x = Activation('relu')(x)
 
         feat2 = MaxPooling2D(pool_size=(2, 2))(x)
-        feat2 = Dropout(0.5)(feat2)
+        # feat2 = Dropout(0.5)(feat2)
 
 
         x = Conv2D(128, (3, 3), strides=1, padding="same", kernel_regularizer=l1_l2(0.01), bias_regularizer=l1_l2(0.01))(feat2)
@@ -58,14 +58,30 @@ class snn:
         x = Activation('relu')(x)
 
         feat3 = MaxPooling2D(pool_size=(2, 2))(x)
-        feat3 = Dropout(0.5)(feat3)
+        # feat3 = Dropout(0.5)(feat3)
 
 
         feat1 = Flatten()(feat1)
         feat2 = Flatten()(feat2)
         feat3 = Flatten()(feat3)
 
-        outputs = Concatenate()([feat1, feat2, feat3])
+        x = Dense(256, kernel_regularizer=l1_l2(0.01), bias_regularizer=l1_l2(0.01))(feat3)
+        x = BatchNormalization()(x)
+        x = Activation('relu')(x)
+
+        x = Dense(256, kernel_regularizer=l2(0.01), bias_regularizer=l2(0.01))(x)
+        x = BatchNormalization()(x)
+        x = Activation('relu')(x)
+
+        x = Dense(256, kernel_regularizer=l2(0.01), bias_regularizer=l2(0.01))(x)
+        x = BatchNormalization()(x)
+        feat4 = Activation('relu')(x)
+
+        #feat4 = Dropout(0.5)(feat4)
+
+        outputs = Concatenate()([feat1, feat2, feat3, feat4])
+
+        # outputs = Concatenate()([feat1, feat2, feat3])
         model = Model(inputs, outputs)
 
         return model
@@ -77,6 +93,7 @@ class snn:
 
         featsA = featureExtractor1(imgA)
         featsB = featureExtractor1(imgB)
+        print(featsA.shape)
         distance = Subtract()([featsA, featsB])
         distance = AbsoluteLayer()(distance)
 
@@ -86,7 +103,7 @@ class snn:
             self.n_class = 1
         else:
             actv = "softmax"
-            
+
         outputs = Dense(self.n_class, activation=actv, kernel_regularizer=l1_l2(0.01), bias_regularizer=l1_l2(0.01))(distance)
         model = Model(inputs=[imgA, imgB], outputs=outputs)
 
@@ -100,9 +117,10 @@ class SquareLayer(Layer):
     def call(self, x):
         return tf.math.square(x)
 
-    # Example usage
-input_shape = (64, 64, 3)  # Example input shape for image data
-num_classes = 2
-snn_model = snn(num_classes)
-model = snn_model.get_model(input_shape)
-model.summary()
+# Example usage
+if __name__ == "__main__":
+    input_shape = (16, 16, 1)  # Example input shape for image data
+    num_classes = 2
+    snn_model = snn(num_classes)
+    model = snn_model.get_model(input_shape)
+    model.summary()

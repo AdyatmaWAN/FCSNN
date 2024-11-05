@@ -1,18 +1,19 @@
 import os
-import pandas as pd
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ["TF_GPU_ALLOCATOR"]="cuda_malloc_async"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # 0 = all logs, 1 = warnings, 2 = errors
 import random
 import numpy as np
 import tensorflow as tf
+import pandas as pd
 import h5py
+
 SEED=1
 def set_seeds(seed=SEED):
-    os.environ['PYTHONHASHSEED'] = str(seed)
-    random.seed(seed)
-    tf.random.set_seed(seed)
-    np.random.seed(seed)
+    # os.environ['PYTHONHASHSEED'] = str(seed)
+    # random.seed(42)
+    tf.random.set_seed(1234)
+    np.random.seed(0)
 
 
 def set_global_determinism(seed=SEED):
@@ -28,7 +29,9 @@ def set_global_determinism(seed=SEED):
 set_global_determinism(seed=SEED)
 from tf_keras.layers import CategoryEncoding
 from tf_keras.optimizers import Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam, Ftrl, Lion
-from snn_vit import snn_vit
+
+from model_resnet import snn
+
 import time
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, f1_score
 from tf_keras.callbacks import ReduceLROnPlateau, EarlyStopping
@@ -42,15 +45,23 @@ y_val = h5f['Y_val'][:]
 X_test = h5f['X_test'][:]
 y_test = h5f['Y_test'][:]
 h5f.close()
-# n_class = len(set(y_train))
-# with open('Data/3blur_all_data64x64.npy', 'rb') as f:
-#     X_train = np.load(f)
-#     y_train = np.load(f)
-#     X_val = np.load(f)
-#     y_val = np.load(f)
-#     X_test = np.load(f)
-#     y_test = np.load(f)
-# f.close()
+
+# Function to filter and modify the labels
+def process_data(X, y):
+    # Filter out labels 1, 2, 3
+    mask = ~np.isin(y, [1, 2, 3])
+    X_filtered = X[mask]
+    y_filtered = y[mask]
+
+    # Change label 4 to 1
+    y_filtered[y_filtered == 4] = 1
+
+    return X_filtered, y_filtered
+
+# Apply the function to train, validation, and test sets
+X_train, y_train = process_data(X_train, y_train)
+X_val, y_val = process_data(X_val, y_val)
+X_test, y_test = process_data(X_test, y_test)
 
 # y_train[y_train == 1] = 0
 # y_train[y_train == 2] = 0
@@ -66,12 +77,14 @@ h5f.close()
 # y_val[y_val == 2] = 0
 # y_val[y_val == 3] = 0
 # y_val[y_val == 4] = 1
+
 n_class = len(set(y_train))
 print("y_train ", n_class)
 n_class = len(set(y_val))
 print("y_val ", n_class)
 n_class = len(set(y_test))
 print("y_test ", n_class)
+
 # -
 
 if(n_class > 2):
@@ -95,9 +108,12 @@ def eval_cnn(predicted, y_test, n_class):
         label = [np.argmax(l) for l in y_test]
 
     acc = accuracy_score(label, prediction)
-    fm = f1_score(label, prediction, average='weighted')
-    prec = precision_score(label, prediction, average='weighted')
-    rec = recall_score(label, prediction, average='weighted')
+    fm = f1_score(label, prediction)
+    prec = precision_score(label, prediction)
+    rec = recall_score(label, prediction)
+    # fm = f1_score(label, prediction, average='weighted')
+    # prec = precision_score(label, prediction, average='weighted')
+    # rec = recall_score(label, prediction, average='weighted')
     confus = confusion_matrix(label, prediction)
 
     return acc, fm, prec, rec, confus, prediction
@@ -108,21 +124,21 @@ def eval_cnn(predicted, y_test, n_class):
 # learn_rate = [0.0001,0.0005,0.001]
 # learn_batch = [512, 256, 128]
 
+
 fm_ = -999
 #Grid
-learn_rate = [0.001]
-learn_batch = [64]
-opt_learn =  [Lion, RMSprop, Adam]
-#learn_rate = [0.001]
-#learn_batch = [100]
-#opt_learn =  [SGD]
-
+# learn_rate = [0.001]
+# learn_batch = [64]
+# opt_learn =  [Lion, RMSprop, Adam]
+learn_rate = [0.005]
+learn_batch = [512]
+opt_learn =  [Lion]
 for opt in opt_learn:
     for lr in learn_rate:
         for batch in learn_batch:
             print(lr, batch)
-            classifier = snn_vit(n_class)
-            model = classifier.get_model(input_shape=(64, 64, 1), residual = True)
+            classifier = snn(n_class)
+            model = classifier.get_model(input_shape=(16, 16, 1), residual = True)
 
 
             print(model.summary())
@@ -137,48 +153,46 @@ for opt in opt_learn:
 
 
             model.compile(loss=loss_fn, optimizer=optimizer, metrics=metrics, jit_compile=False)
-            model.fit([X_train[:, 0], X_train[:, 1]], y_train[:], batch_size=batch, epochs=1, validation_data=([X_val[:, 0], X_val[:, 1]], y_val[:]), callbacks = [reduce_lr, early_s], verbose=1)
+            model.fit([X_train[:, 0], X_train[:, 1]], y_train[:], batch_size=batch, epochs=100, validation_data=([X_val[:, 0], X_val[:, 1]], y_val[:]), callbacks = [reduce_lr, early_s], verbose=1)
 
 
 
             #------------------Training
             # predicted = model([X_train[:, 0], X_train[:, 1]], training = False)
+
             #
+
             print("-------------------------------------------Training------------------------------------------")
-            predicted = model.predict([X_train[:, 0], X_train[:, 1]], batch_size=batch)
-            # predicted = model([X_train[:, 0], X_train[:, 1]], training = False)
-
+            # predicted = model.predict([X_train[:, 0], X_train[:, 1]], batch_size=batch)
+            predicted = model([X_train[:, 0], X_train[:, 1]], training = False)
             acc, fm, prec, rec, confus, prediction = eval_cnn(predicted, y_train, n_class)
-
-            print("Predicted: ", prediction)
-            print("Y_train: ", y_train)
+            # print("Predicted: ", prediction)
+            # print("Y_train: ", y_train)
             print("n_class: ", n_class)
             print()
-
             print("Accuracy: ", acc)
             print("F-Measure: ",fm)
             print("Precision: ",prec)
             print("Recall: ",rec)
             print(confus)
+
+
 
             #------------------Testing
             print("-------------------------------------------Testing-------------------------------------------")
-            predicted = model.predict([X_test[:, 0], X_test[:, 1]], batch_size=batch)
-            # predicted = model([X_test[:, 0], X_test[:, 1]], training = False)
+            # predicted = model.predict([X_test[:, 0], X_test[:, 1]], batch_size=batch)
+            predicted = model([X_test[:, 0], X_test[:, 1]], training = False)
 
             acc, fm, prec, rec, confus, prediction = eval_cnn(predicted, y_test, n_class)
-
-            print("Predicted: ", prediction)
-            print("Y_test: ", y_test)
+            # print("Predicted: ", prediction)
+            # print("Y_test: ", y_test)
             print("n_class: ", n_class)
             print()
-
             print("Accuracy: ", acc)
             print("F-Measure: ",fm)
             print("Precision: ",prec)
             print("Recall: ",rec)
             print(confus)
-
             # Append results to list
             result_df = pd.DataFrame([{
                 "Optimizer": opt.__name__,
@@ -190,8 +204,6 @@ for opt in opt_learn:
                 "Recall": rec,
                 "Confusion Matrix": confus.tolist()
             }])
-
-
             # Check if the results file exists
             if os.path.exists("training_results.xlsx"):
                 # Read the existing Excel file
@@ -201,10 +213,8 @@ for opt in opt_learn:
             else:
                 # If the file does not exist, use the new results directly
                 updated_df = result_df
-
             # Save the updated DataFrame back to the Excel file
             updated_df.to_excel("training_results.xlsx", index=False)
-
 
             print("LR: ", lr, " Batch: ",batch," F-Measure test: ", fm)
             if(fm_ < fm):
@@ -214,14 +224,12 @@ for opt in opt_learn:
                 best_model = model
                 opt_ = opt
 
-# Save all results to an Excel file
-# results_df = pd.DataFrame(results)
-# results_df.to_excel("training_results.xlsx", index=False)
-
 print("Best learning_rate: ",best_lr)
 print("Best batch: ",best_batch)
 print("Best accuracy: ",fm_)
 print(best_model.summary())
 fm_ = str(fm_)
 fm_ = fm_[0:6]
-best_model.save('saved_model/'+str(fm_)+'_'+str(best_batch)+'_'+str(opt_)+'_lr_'+str(best_lr)+'_classweighted_blur16x16_.h5')
+best_model.save('saved_model/'+str(fm_)+'_'+str(best_batch)+'_'+str(opt_)+'_lr_'+str(best_lr)+'_3blur_64x64_.h5')
+
+

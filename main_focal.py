@@ -154,7 +154,7 @@ for opt in opt_learn:
 
             model.compile(loss=loss_fn, optimizer=optimizer, metrics=metrics, jit_compile=False)
             # model.fit([X_train[:, 0], X_train[:, 1]], y_train[:], batch_size=batch, epochs=10, validation_data=([X_val[:, 0], X_val[:, 1]], y_val[:]), callbacks = [reduce_lr, early_s], verbose=1)
-            model.fit([X_train[:, 0], X_train[:, 1]], y_train[:], batch_size=batch, epochs=100, validation_data=([X_val[:, 0], X_val[:, 1]], y_val[:]), verbose=1)
+            model.fit([X_train[:, 0], X_train[:, 1]], y_train[:], batch_size=batch, epochs=10, validation_data=([X_val[:, 0], X_val[:, 1]], y_val[:]), verbose=1)
 
 
 
@@ -166,7 +166,14 @@ for opt in opt_learn:
             print("-------------------------------------------Training------------------------------------------")
             # predicted = model.predict([X_train[:, 0], X_train[:, 1]], batch_size=batch)
             predicted = model([X_train[:, 0], X_train[:, 1]], training = False)
-            print("Original Predicted: ", predicted)
+            head = 5
+            tail = 5
+            head_values = predicted[:head]
+            tail_values = predicted[-tail:]
+
+            # Combine the head and tail slices for printing
+            predicted_head_tail = tf.concat([head_values, tail_values], axis=0)
+            print("Original Predicted: ", predicted_head_tail)
             acc, fm, prec, rec, confus, prediction = eval_cnn(predicted, y_train, n_class)
             print("Predicted: ", prediction)
             print("Y_train: ", y_train)
@@ -184,7 +191,16 @@ for opt in opt_learn:
             print("-------------------------------------------Testing-------------------------------------------")
             # predicted = model.predict([X_test[:, 0], X_test[:, 1]], batch_size=batch)
             predicted = model([X_test[:, 0], X_test[:, 1]], training = False)
-            print("Original Predicted: ", predicted)
+
+            head = 5
+            tail = 5
+            head_values = predicted[:head]
+            tail_values = predicted[-tail:]
+
+            # Combine the head and tail slices for printing
+            predicted_head_tail = tf.concat([head_values, tail_values], axis=0)
+
+            print("Original Predicted: ", predicted_head_tail)
             acc, fm, prec, rec, confus, prediction = eval_cnn(predicted, y_test, n_class)
             print("Predicted: ", prediction)
             print("Y_test: ", y_test)

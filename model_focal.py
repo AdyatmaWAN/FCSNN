@@ -70,43 +70,19 @@ class PatchEmbed(Layer):
 
         return x, height, width, channels
 
-def MLP(
-        in_features: int,
-        hidden_features: Optional[int] = None,
-        out_features: Optional[int] = None,
-        mlp_drop_rate: float = 0.0,
-):
+def MLP(in_features: int, hidden_features: Optional[int] = None, out_features: Optional[int] = None, mlp_drop_rate: float = 0.0):
     hidden_features = hidden_features or in_features
     out_features = out_features or in_features
 
-    return Sequential(
-        [
-            Dense(units=hidden_features, activation=gelu),
-            Dense(units=out_features),
-            Dropout(rate=mlp_drop_rate),
-        ]
-    )
+    return Sequential([
+        Dense(units=hidden_features, activation=gelu, kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.02)),
+        Dense(units=out_features, kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.02)),
+        Dropout(rate=mlp_drop_rate),
+    ])
+
 
 class FocalModulationLayer(Layer):
-    """The Focal Modulation layer includes query projection & context aggregation.
-
-    Args:
-        dim (int): Projection dimension.
-        focal_window (int): Window size for focal modulation.
-        focal_level (int): The current focal level.
-        focal_factor (int): Factor of focal modulation.
-        proj_drop_rate (float): Rate of dropout.
-    """
-
-    def __init__(
-            self,
-            dim: int,
-            focal_window: int,
-            focal_level: int,
-            focal_factor: int = 2,
-            proj_drop_rate: float = 0.1,
-            **kwargs,
-    ):
+    def __init__(self, dim: int, focal_window: int, focal_level: int, focal_factor: int = 2, proj_drop_rate: float = 0.1, **kwargs):
         super().__init__(**kwargs)
         self.dim = dim
         self.focal_window = focal_window
@@ -114,84 +90,70 @@ class FocalModulationLayer(Layer):
         self.focal_factor = focal_factor
         self.proj_drop_rate = proj_drop_rate
 
-        # Project the input feature into a new feature space using a
-        # linear layer. Note the `units` used. We will be projecting the input
-        # feature all at once and split the projection into query, context,
-        # and gates.
+        # Use small initial values for Dense layers
         self.initial_proj = Dense(
             units=(2 * self.dim) + (self.focal_level + 1),
             use_bias=True,
+            kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.02)
         )
-        self.focal_layers = list()
-        self.kernel_sizes = list()
+
+        self.focal_layers = []
         for idx in range(self.focal_level):
             kernel_size = (self.focal_factor * idx) + self.focal_window
-            depth_gelu_block = Sequential(
-                [
-                    ZeroPadding2D(padding=(kernel_size // 2, kernel_size // 2)),
-                    Conv2D(
-                        filters=self.dim,
-                        kernel_size=kernel_size,
-                        activation=gelu,
-                        groups=self.dim,
-                        use_bias=False,
-                    ),
-                ]
-            )
-            self.focal_layers.append(depth_gelu_block)
-            self.kernel_sizes.append(kernel_size)
+            layer = Sequential([
+                ZeroPadding2D(padding=(kernel_size // 2, kernel_size // 2)),
+                Conv2D(
+                    filters=self.dim,
+                    kernel_size=kernel_size,
+                    activation=gelu,
+                    groups=self.dim,
+                    use_bias=False,
+                    kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.02)
+                ),
+            ])
+            self.focal_layers.append(layer)
+
+        # Smaller activation range using tanh instead of gelu
         self.activation = tanh
         self.gap = GlobalAveragePooling2D(keepdims=True)
         self.modulator_proj = Conv2D(
             filters=self.dim,
             kernel_size=(1, 1),
             use_bias=True,
+            kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.02)
         )
-        self.proj = Dense(units=self.dim)
+        self.proj = Dense(units=self.dim, kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.02))
         self.proj_drop = Dropout(self.proj_drop_rate)
 
     def call(self, x: tf.Tensor, training: Optional[bool] = None) -> tf.Tensor:
-        """Forward pass of the layer.
-
-        Args:
-            x: Tensor of shape (B, H, W, C)
-        """
-        # Apply the linear projecion to the input feature map
         x_proj = self.initial_proj(x)
         tf.debugging.check_numerics(x_proj, message="NaN after initial projection in FocalModulationLayer")
-        # Split the projected x into query, context and gates
-        query, context, self.gates = tf.split(
-            value=x_proj,
-            num_or_size_splits=[self.dim, self.dim, self.focal_level + 1],
-            axis=-1,
-        )
+
+        query, context, self.gates = tf.split(value=x_proj, num_or_size_splits=[self.dim, self.dim, self.focal_level + 1], axis=-1)
         self.gates = tf.clip_by_value(self.gates, -1.0, 1.0)
-        tf.debugging.check_numerics(query, message="NaN in query in FocalModulationLayer")
-        # Context aggregation
+
         context = self.focal_layers[0](context)
         context_all = context * self.gates[..., 0:1]
-        tf.debugging.check_numerics(context_all, message="NaN after context aggregation in FocalModulationLayer")
+
         for idx in range(1, self.focal_level):
             context = self.focal_layers[idx](context)
-            context_all += context * self.gates[..., idx : idx + 1]
-        tf.debugging.check_numerics(context_all, message="NaN after context aggregation in FocalModulationLayer")
-        # Build the global context
-        context_global = self.activation(self.gap(context))
+            context_all += context * self.gates[..., idx: idx + 1]
+
+        context_global = self.activation(self.gap(context))  # Replace with bounded activation
         context_all += context_global * self.gates[..., self.focal_level :]
-        tf.debugging.check_numerics(context_all, message="NaN after context aggregation in FocalModulationLayer")
-        # Focal Modulation
+
         self.modulator = self.modulator_proj(context_all)
-        tf.debugging.check_numerics(self.modulator, message="NaN after modulator projection in FocalModulationLayer")
-        # tf.print("query ", query)
-        # tf.print("modulator ", self.modulator)
+
+        # Clipping to avoid extreme values before multiplication
+        query = tf.clip_by_value(query, -1e2, 1e2)
+        self.modulator = tf.clip_by_value(self.modulator, -1e2, 1e2)
+
         x_output = query * self.modulator
-        tf.debugging.check_numerics(x_output, message="NaN after focal modulation in FocalModulationLayer")
-        # Project the output and apply dropout
         x_output = self.proj(x_output)
-        tf.debugging.check_numerics(x_output, message="NaN in FocalModulationLayer proj")
         x_output = self.proj_drop(x_output)
-        tf.debugging.check_numerics(x_output, message="NaN in FocalModulationLayer output")
+
         return x_output
+
 
 class FocalModulationBlock(Layer):
     """Combine FFN and Focal Modulation Layer.
@@ -427,6 +389,9 @@ class FocalModulationNetwork(Model):
         tf.debugging.check_numerics(concatenated_residuals, message="NaN in concatenated residuals in FocalModulationNetwork")
         # Optional: apply normalization and pooling if needed
         concatenated_residuals = self.norm(concatenated_residuals)
+        # tf.print(concatenated_residuals)
+        # tf.print(concatenated_residuals.shape)
+        # tf.print()
         return concatenated_residuals
 
 
@@ -434,14 +399,15 @@ class AbsoluteLayer(Layer):
     def call(self, x):
         return tf.math.abs(x)
 
-# class SquareLayer(Layer):
-#     def call(self, x):
-#         return tf.math.square(x)
+class SquareLayer(Layer):
+    def call(self, x):
+        return tf.math.square(x)
 
 class snn:
     def __init__(self, num_classes: int = 2):
         self.num_classes = num_classes
-        self.feature_extractor = self.build_feature_extractor()
+        self.feature_extractor_1 = self.build_feature_extractor()
+        self.feature_extractor_2 = self.build_feature_extractor()
 
     def build_feature_extractor(self):
         """Creates the base feature extraction model using FocalModulationNetwork."""
@@ -463,8 +429,11 @@ class snn:
         imgB = Input(shape=input_shape)
 
         # Use the feature extractor for both inputs
-        featsA = self.feature_extractor(imgA)
-        featsB = self.feature_extractor(imgB)
+        featsA = self.feature_extractor_1(imgA)
+        featsA = AbsoluteLayer()(featsA)  # Apply absolute value
+
+        featsB = self.feature_extractor_2(imgB)
+        featsB = AbsoluteLayer()(featsB)  # Apply absolute value
 
         tf.debugging.check_numerics(featsA, message="NaN found in featsA")
         tf.debugging.check_numerics(featsB, message="NaN found in featsB")
@@ -472,6 +441,7 @@ class snn:
         # Compute the absolute difference between features
         distance = Subtract()([featsA, featsB])
         distance = AbsoluteLayer()(distance)  # Apply absolute value
+        distance = SquareLayer()(distance)  # Apply square
         tf.debugging.check_numerics(distance, message="NaN found in distance after AbsoluteLayer")
         # Add an MLP for classification
         if self.num_classes == 2:
@@ -485,8 +455,8 @@ class snn:
         outputs = Dense(
             units=output_units,
             activation=activation,
-            kernel_regularizer=l1_l2(0.01),
-            bias_regularizer=l1_l2(0.01)
+            # kernel_regularizer=l1_l2(0.01),
+            # bias_regularizer=l1_l2(0.01)
         )(distance)
         tf.debugging.check_numerics(outputs, message="NaN found in final outputs")
         # Define the full model
