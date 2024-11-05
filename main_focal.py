@@ -248,6 +248,6 @@ print("Best accuracy: ",fm_)
 print(best_model.summary())
 fm_ = str(fm_)
 fm_ = fm_[0:6]
-best_model.save('saved_model/'+str(fm_)+'_'+str(best_batch)+'_'+str(opt_)+'_lr_'+str(best_lr)+'_3blur_64x64_.h5')
+# best_model.save('saved_model/'+str(fm_)+'_'+str(best_batch)+'_'+str(opt_)+'_lr_'+str(best_lr)+'_3blur_64x64_.h5')
 
 
