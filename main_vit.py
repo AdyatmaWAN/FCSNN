@@ -25,7 +25,7 @@ def set_global_determinism(seed=SEED):
     tf.keras.backend.set_floatx('float32')
 
 set_global_determinism(seed=SEED)
-from tensorflow.keras.layers import CategoryEncoding
+from tf_keras.layers import CategoryEncoding
 from tf_keras.optimizers import Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam, Ftrl, Lion
 from snn_vit import snn_vit
 import time
