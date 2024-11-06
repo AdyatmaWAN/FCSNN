@@ -33,7 +33,7 @@ from tf_keras.optimizers import Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, N
 from model_1 import snn
 
 import time
-from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, f1_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, f1_score, ConfusionMatrixDisplay
 from tf_keras.callbacks import ReduceLROnPlateau, EarlyStopping
 
 # +
@@ -115,6 +115,14 @@ def eval_cnn(predicted, y_test, n_class):
     # prec = precision_score(label, prediction, average='weighted')
     # rec = recall_score(label, prediction, average='weighted')
     confus = confusion_matrix(label, prediction)
+
+    print("Predictions ", len(np.unique(prediction)), " ", np.unique(prediction))
+    print("Labels ", len(np.unique(label)), " ", np.unique(label))
+    print()
+
+    cm_display = ConfusionMatrixDisplay(confusion_matrix = confus)
+    import matplotlib.pyplot as plt
+    cm_display.plot().figure_.savefig("confusion_matrix_1.png")
 
     return acc, fm, prec, rec, confus, prediction
 
@@ -230,6 +238,4 @@ print("Best accuracy: ",fm_)
 print(best_model.summary())
 fm_ = str(fm_)
 fm_ = fm_[0:6]
-best_model.save('saved_model/'+str(fm_)+'_'+str(best_batch)+'_'+str(opt_)+'_lr_'+str(best_lr)+'_3blur_64x64_.h5')
-
-
+#best_model.save('saved_model/'+str(fm_)+'_'+str(best_batch)+'_'+str(opt_)+'_lr_'+str(best_lr)+'_3blur_64x64_.h5')
