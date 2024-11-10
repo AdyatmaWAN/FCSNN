@@ -1,5 +1,5 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["TF_GPU_ALLOCATOR"]="cuda_malloc_async"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # 0 = all logs, 1 = warnings, 2 = errors
 import random
@@ -27,14 +27,14 @@ def set_global_determinism(seed=SEED):
     tf.keras.backend.set_floatx('float32')
 
 set_global_determinism(seed=SEED)
-from tf_keras.layers import CategoryEncoding
-from tf_keras.optimizers import Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam, Ftrl, Lion
+from tensorflow.keras.layers import CategoryEncoding
+from tensorflow.keras.optimizers import Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam
 
 from model_focal import snn
 
 import time
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, f1_score, ConfusionMatrixDisplay
-from tf_keras.callbacks import ReduceLROnPlateau, EarlyStopping
+from tensorflow.keras.callbacks import ReduceLROnPlateau, EarlyStopping
 
 # +
 h5f = h5py.File('Data/3blur_all_data16x16.h5', 'r')
@@ -67,12 +67,12 @@ X_test, y_test = process_data(X_test, y_test)
 # y_train[y_train == 2] = 0
 # y_train[y_train == 3] = 0
 # y_train[y_train == 4] = 1
-
+#
 # y_test[y_test == 1] = 0
 # y_test[y_test == 2] = 0
 # y_test[y_test == 3] = 0
 # y_test[y_test == 4] = 1
-
+#
 # y_val[y_val == 1] = 0
 # y_val[y_val == 2] = 0
 # y_val[y_val == 3] = 0
@@ -122,7 +122,7 @@ def eval_cnn(predicted, y_test, n_class):
 
     cm_display = ConfusionMatrixDisplay(confusion_matrix = confus)
     import matplotlib.pyplot as plt
-    cm_display.plot().figure_.savefig("confusion_matrix_1.png")
+    cm_display.plot().figure_.savefig("confusion_matrix_2.png")
 
     return acc, fm, prec, rec, confus, prediction
 
@@ -131,19 +131,26 @@ def eval_cnn(predicted, y_test, n_class):
 # fm_ = -999
 # learn_rate = [0.0001,0.0005,0.001]
 # learn_batch = [512, 256, 128]
+# opt_learn =  [Adam, RMSprop, SGD, Nadam, Adamax]
+fm_ = -999
+# learn_rate = [0.0001,0.0005,0.001,0.005]
 
+# learn_batch = [512, 256, 128, 64, 32, 16, 8]
 
+best_lr = 0
+best_batch = 0
+best_model = None
 fm_ = -999
 #Grid
 # learn_rate = [0.001]
 # learn_batch = [64]
 # opt_learn =  [Lion, RMSprop, Adam]
-learn_rate = [0.005]
-learn_batch = [512]
-opt_learn =  [Adamax]
-for opt in opt_learn:
-    for lr in learn_rate:
-        for batch in learn_batch:
+learn_rate_1 = [0.005]
+learn_batch_1 = [16]
+opt_learn_1 =  [Adam]
+for opt in opt_learn_1:
+    for lr in learn_rate_1:
+        for batch in learn_batch_1:
             print(lr, batch)
             classifier = snn(n_class)
             model = classifier.get_model(input_shape=(16, 16, 1), residual = True)
@@ -161,6 +168,8 @@ for opt in opt_learn:
 
 
             model.compile(loss=loss_fn, optimizer=optimizer, metrics=metrics, jit_compile=False)
+            # if batch not in learn_batch_1 or lr not in learn_rate_1 or "Nadam" not in str(opt):
+            #     continue
             model.fit([X_train[:, 0], X_train[:, 1]], y_train[:], batch_size=batch, epochs=100, validation_data=([X_val[:, 0], X_val[:, 1]], y_val[:]), callbacks = [reduce_lr, early_s], verbose=1)
 
 
@@ -239,3 +248,5 @@ print(best_model.summary())
 fm_ = str(fm_)
 fm_ = fm_[0:6]
 #best_model.save('saved_model/'+str(fm_)+'_'+str(best_batch)+'_'+str(opt_)+'_lr_'+str(best_lr)+'_3blur_64x64_.h5')
+
+

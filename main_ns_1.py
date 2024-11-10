@@ -59,24 +59,24 @@ def process_data(X, y):
     return X_filtered, y_filtered
 
 # Apply the function to train, validation, and test sets
-# X_train, y_train = process_data(X_train, y_train)
-# X_val, y_val = process_data(X_val, y_val)
-# X_test, y_test = process_data(X_test, y_test)
+X_train, y_train = process_data(X_train, y_train)
+X_val, y_val = process_data(X_val, y_val)
+X_test, y_test = process_data(X_test, y_test)
 
-y_train[y_train == 1] = 0
-y_train[y_train == 2] = 0
-y_train[y_train == 3] = 0
-y_train[y_train == 4] = 1
-
-y_test[y_test == 1] = 0
-y_test[y_test == 2] = 0
-y_test[y_test == 3] = 0
-y_test[y_test == 4] = 1
-
-y_val[y_val == 1] = 0
-y_val[y_val == 2] = 0
-y_val[y_val == 3] = 0
-y_val[y_val == 4] = 1
+# y_train[y_train == 1] = 0
+# y_train[y_train == 2] = 0
+# y_train[y_train == 3] = 0
+# y_train[y_train == 4] = 1
+#
+# y_test[y_test == 1] = 0
+# y_test[y_test == 2] = 0
+# y_test[y_test == 3] = 0
+# y_test[y_test == 4] = 1
+#
+# y_val[y_val == 1] = 0
+# y_val[y_val == 2] = 0
+# y_val[y_val == 3] = 0
+# y_val[y_val == 4] = 1
 
 n_class = len(set(y_train))
 print("y_train ", n_class)

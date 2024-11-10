@@ -1,6 +1,6 @@
-from tf_keras.models import Model
-from tf_keras.layers import Input, Flatten, Dense, Dropout, Subtract, Concatenate, Activation, Layer, Conv2D, MaxPooling2D, BatchNormalization, Subtract, Activation
-from tf_keras.regularizers import l1_l2, l2
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Flatten, Dense, Dropout, Subtract, Concatenate, Activation, Layer, Conv2D, MaxPooling2D, BatchNormalization, Subtract, Activation
+from tensorflow.keras.regularizers import l1_l2, l2
 import tensorflow as tf
 import tensorflow.keras.backend as K
 tf.random.set_seed(1234)

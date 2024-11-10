@@ -1,11 +1,11 @@
 import tensorflow as tf
-from tf_keras.layers import Conv2D, LayerNormalization, Dense, DepthwiseConv2D, GlobalAveragePooling2D, Layer, Reshape
-from tf_keras.layers import Add, Multiply, Input, UpSampling2D, Dropout, ZeroPadding2D, Flatten,GlobalAveragePooling1D
-from tf_keras.layers import Subtract, Activation, Concatenate, BatchNormalization
-from tf_keras.regularizers import l1_l2
-from tf_keras.models import Model
-from tf_keras.activations import gelu, tanh
-from tf_keras import Sequential
+from tensorflow.keras.layers import Conv2D, LayerNormalization, Dense, DepthwiseConv2D, GlobalAveragePooling2D, Layer, Reshape
+from tensorflow.keras.layers import Add, Multiply, Input, UpSampling2D, Dropout, ZeroPadding2D, Flatten,GlobalAveragePooling1D
+from tensorflow.keras.layers import Subtract, Activation, Concatenate, BatchNormalization
+from tensorflow.keras.regularizers import l1_l2
+from tensorflow.keras.models import Model
+from tensorflow.keras.activations import relu, relu
+from tensorflow.keras import Sequential
 from typing import Optional, Tuple, List
 from random import randint
 import numpy as np
@@ -75,7 +75,7 @@ def MLP(in_features: int, hidden_features: Optional[int] = None, out_features: O
     out_features = out_features or in_features
 
     return Sequential([
-        Dense(units=hidden_features, activation=gelu, kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.02)),
+        Dense(units=hidden_features, activation=relu, kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.02)),
         Dense(units=out_features, kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.02)),
         Dropout(rate=mlp_drop_rate),
     ])
@@ -105,7 +105,7 @@ class FocalModulationLayer(Layer):
                 Conv2D(
                     filters=self.dim,
                     kernel_size=kernel_size,
-                    activation=gelu,
+                    activation=relu,
                     groups=self.dim,
                     use_bias=False,
                     kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=0.02)
@@ -113,8 +113,8 @@ class FocalModulationLayer(Layer):
             ])
             self.focal_layers.append(layer)
 
-        # Smaller activation range using tanh instead of gelu
-        self.activation = tanh
+        # Smaller activation range using relu instead of relu
+        self.activation = relu
         self.gap = GlobalAveragePooling2D(keepdims=True)
         self.modulator_proj = Conv2D(
             filters=self.dim,
@@ -407,14 +407,14 @@ class snn:
     def __init__(self, num_classes: int = 2):
         self.num_classes = num_classes
         self.feature_extractor_1 = self.build_feature_extractor()
-        self.feature_extractor_2 = self.build_feature_extractor()
+        # self.feature_extractor_2 = self.build_feature_extractor()
 
     def build_feature_extractor(self):
         """Creates the base feature extraction model using FocalModulationNetwork."""
         return FocalModulationNetwork(
             image_size=(16, 16),  # Example image size, adjust as needed
             embed_dim=256,  # Adjusted embed_dim for simplicity
-            depths=[2, 2, 6],
+            depths=[2, 4, 6],
             mlp_ratio=4.0,
             drop_rate=0.1,
             focal_levels=[2, 2, 2],
@@ -432,7 +432,7 @@ class snn:
         featsA = self.feature_extractor_1(imgA)
         featsA = AbsoluteLayer()(featsA)  # Apply absolute value
 
-        featsB = self.feature_extractor_2(imgB)
+        featsB = self.feature_extractor_1(imgB)
         featsB = AbsoluteLayer()(featsB)  # Apply absolute value
 
         tf.debugging.check_numerics(featsA, message="NaN found in featsA")
