@@ -50,6 +50,7 @@ h5f.close()
 def process_data(X, y):
     # Filter out labels 1, 2, 3
     mask = ~np.isin(y, [1, 2, 3])
+
     X_filtered = X[mask]
     y_filtered = y[mask]
 
@@ -108,21 +109,21 @@ def eval_cnn(predicted, y_test, n_class):
         label = [np.argmax(l) for l in y_test]
 
     acc = accuracy_score(label, prediction)
-    fm = f1_score(label, prediction)
-    prec = precision_score(label, prediction)
-    rec = recall_score(label, prediction)
-    # fm = f1_score(label, prediction, average='weighted')
-    # prec = precision_score(label, prediction, average='weighted')
-    # rec = recall_score(label, prediction, average='weighted')
+    # fm = f1_score(label, prediction)
+    # prec = precision_score(label, prediction)
+    # rec = recall_score(label, prediction)
+    fm = f1_score(label, prediction, average='weighted')
+    prec = precision_score(label, prediction, average='weighted')
+    rec = recall_score(label, prediction, average='weighted')
     confus = confusion_matrix(label, prediction)
 
     print("Predictions ", len(np.unique(prediction)), " ", np.unique(prediction))
     print("Labels ", len(np.unique(label)), " ", np.unique(label))
     print()
 
-    cm_display = ConfusionMatrixDisplay(confusion_matrix = confus)
-    import matplotlib.pyplot as plt
-    cm_display.plot().figure_.savefig("confusion_matrix_2.png")
+    # cm_display = ConfusionMatrixDisplay(confusion_matrix = confus)
+    # import matplotlib.pyplot as plt
+    # cm_display.plot().figure_.savefig("confusion_matrix_2.png")
 
     return acc, fm, prec, rec, confus, prediction
 
@@ -158,7 +159,7 @@ for opt in opt_learn:
 
             print(model.summary())
             reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.4,patience=2, min_lr=0.00001)
-            early_s = EarlyStopping(monitor='val_loss', patience=100)
+            early_s = EarlyStopping(monitor='val_loss', patience=25, min_delta=0.0001)
 
             if(str(opt) == "<class 'keras.optimizer_v2.gradient_descent.SGD'>"):
                 optimizer = opt(learning_rate=lr, momentum=0.9)
@@ -168,9 +169,9 @@ for opt in opt_learn:
 
 
             model.compile(loss=loss_fn, optimizer=optimizer, metrics=metrics, jit_compile=False)
-            if batch not in learn_batch_1 or lr not in learn_rate_1 or "Nadam" not in str(opt):
-                continue
-            model.fit([X_train[:, 0], X_train[:, 1]], y_train[:], batch_size=batch, epochs=100, validation_data=([X_val[:, 0], X_val[:, 1]], y_val[:]), callbacks = [reduce_lr, early_s], verbose=1)
+            # if batch not in learn_batch_1 or lr not in learn_rate_1 or "Nadam" not in str(opt):
+            #     continue
+            model.fit([X_train[:, 0], X_train[:, 1]], y_train[:], batch_size=batch, epochs=250, validation_data=([X_val[:, 0], X_val[:, 1]], y_val[:]), callbacks = [reduce_lr, early_s], verbose=1)
 
 
 
@@ -247,6 +248,4 @@ print("Best accuracy: ",fm_)
 print(best_model.summary())
 fm_ = str(fm_)
 fm_ = fm_[0:6]
-#best_model.save('saved_model/'+str(fm_)+'_'+str(best_batch)+'_'+str(opt_)+'_lr_'+str(best_lr)+'_3blur_64x64_.h5')
-
-
+best_model.save('saved_model/'+str(fm_)+'_'+str(best_batch)+'_'+str(opt_)+'_lr_'+str(best_lr)+'_3blur_64x64_.h5')
