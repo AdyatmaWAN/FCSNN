@@ -6,13 +6,14 @@ import random
 import numpy as np
 import tensorflow as tf
 import pandas as pd
+import h5py
 
 SEED=1
 def set_seeds(seed=SEED):
-    os.environ['PYTHONHASHSEED'] = str(seed)
-    random.seed(seed)
-    tf.random.set_seed(seed)
-    np.random.seed(seed)
+    # os.environ['PYTHONHASHSEED'] = str(seed)
+    # random.seed(42)
+    tf.random.set_seed(1234)
+    np.random.seed(0)
 
 
 def set_global_determinism(seed=SEED):
@@ -29,30 +30,38 @@ set_global_determinism(seed=SEED)
 from tf_keras.layers import CategoryEncoding
 from tf_keras.optimizers import Adam, RMSprop, SGD, Adadelta, Adagrad, Adamax, Nadam, Ftrl, Lion
 
-from model import snn
+from model_try import snn
 
 import time
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, f1_score
 from tf_keras.callbacks import ReduceLROnPlateau, EarlyStopping
 
 # +
-# h5f = h5py.File('Data/3blur_all_data64x64.h5', 'r')
-# X_train = h5f['X_train'][:]
-# y_train = h5f['Y_train'][:]
-# X_val = h5f['X_val'][:]
-# y_val = h5f['Y_val'][:]
-# X_test = h5f['X_test'][:]
-# y_test = h5f['Y_test'][:]
-# h5f.close()
-# n_class = len(set(y_train))
-with open('Data/3blur_all_data64x64.npy', 'rb') as f:
-    X_train = np.load(f)
-    y_train = np.load(f)
-    X_val = np.load(f)
-    y_val = np.load(f)
-    X_test = np.load(f)
-    y_test = np.load(f)
-f.close()
+h5f = h5py.File('Data/3blur_all_data16x16.h5', 'r')
+X_train = h5f['X_train'][:]
+y_train = h5f['Y_train'][:]
+X_val = h5f['X_val'][:]
+y_val = h5f['Y_val'][:]
+X_test = h5f['X_test'][:]
+y_test = h5f['Y_test'][:]
+h5f.close()
+
+# Function to filter and modify the labels
+def process_data(X, y):
+    # Filter out labels 1, 2, 3
+    mask = ~np.isin(y, [1, 2, 3])
+    X_filtered = X[mask]
+    y_filtered = y[mask]
+
+    # Change label 4 to 1
+    y_filtered[y_filtered == 4] = 1
+
+    return X_filtered, y_filtered
+
+# Apply the function to train, validation, and test sets
+X_train, y_train = process_data(X_train, y_train)
+X_val, y_val = process_data(X_val, y_val)
+X_test, y_test = process_data(X_test, y_test)
 
 # y_train[y_train == 1] = 0
 # y_train[y_train == 2] = 0
@@ -79,9 +88,9 @@ print("y_test ", n_class)
 # -
 
 if(n_class > 2):
-#     y_train = CategoryEncoding(num_tokens=5, output_mode="one_hot")(y_train)
-#     y_val = CategoryEncoding(num_tokens=5, output_mode="one_hot")(y_val)
-#     y_test = CategoryEncoding(num_tokens=5, output_mode="one_hot")(y_test)
+    #     y_train = CategoryEncoding(num_tokens=5, output_mode="one_hot")(y_train)
+    #     y_val = CategoryEncoding(num_tokens=5, output_mode="one_hot")(y_val)
+    #     y_test = CategoryEncoding(num_tokens=5, output_mode="one_hot")(y_test)
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy()
     metrics = ['accuracy']
 else:
@@ -99,9 +108,12 @@ def eval_cnn(predicted, y_test, n_class):
         label = [np.argmax(l) for l in y_test]
 
     acc = accuracy_score(label, prediction)
-    fm = f1_score(label, prediction, average='weighted')
-    prec = precision_score(label, prediction, average='weighted')
-    rec = recall_score(label, prediction, average='weighted')
+    fm = f1_score(label, prediction)
+    prec = precision_score(label, prediction)
+    rec = recall_score(label, prediction)
+    # fm = f1_score(label, prediction, average='weighted')
+    # prec = precision_score(label, prediction, average='weighted')
+    # rec = recall_score(label, prediction, average='weighted')
     confus = confusion_matrix(label, prediction)
 
     return acc, fm, prec, rec, confus, prediction
@@ -115,18 +127,18 @@ def eval_cnn(predicted, y_test, n_class):
 
 fm_ = -999
 #Grid
-learn_rate = [0.001]
-learn_batch = [64]
-opt_learn =  [Lion, RMSprop, Adam]
-#learn_rate = [0.001]
-#learn_batch = [100]
-#opt_learn =  [SGD]
+# learn_rate = [0.001]
+# learn_batch = [64]
+# opt_learn =  [Lion, RMSprop, Adam]
+learn_rate = [0.05]
+learn_batch = [512]
+opt_learn =  [Adamax]
 for opt in opt_learn:
     for lr in learn_rate:
         for batch in learn_batch:
             print(lr, batch)
             classifier = snn(n_class)
-            model = classifier.get_model(input_shape=(64, 64, 1), residual = True)
+            model = classifier.get_model(input_shape=(16, 16, 1), residual = True)
 
 
             print(model.summary())
@@ -151,11 +163,11 @@ for opt in opt_learn:
             #
 
             print("-------------------------------------------Training------------------------------------------")
-            predicted = model.predict([X_train[:, 0], X_train[:, 1]], batch_size=batch)
-            # predicted = model([X_train[:, 0], X_train[:, 1]], training = False)
+            # predicted = model.predict([X_train[:, 0], X_train[:, 1]], batch_size=batch)
+            predicted = model([X_train[:, 0], X_train[:, 1]], training = False)
             acc, fm, prec, rec, confus, prediction = eval_cnn(predicted, y_train, n_class)
-            print("Predicted: ", prediction)
-            print("Y_train: ", y_train)
+            # print("Predicted: ", prediction)
+            # print("Y_train: ", y_train)
             print("n_class: ", n_class)
             print()
             print("Accuracy: ", acc)
@@ -168,12 +180,12 @@ for opt in opt_learn:
 
             #------------------Testing
             print("-------------------------------------------Testing-------------------------------------------")
-            predicted = model.predict([X_test[:, 0], X_test[:, 1]], batch_size=batch)
-            # predicted = model([X_test[:, 0], X_test[:, 1]], training = False)
+            # predicted = model.predict([X_test[:, 0], X_test[:, 1]], batch_size=batch)
+            predicted = model([X_test[:, 0], X_test[:, 1]], training = False)
 
             acc, fm, prec, rec, confus, prediction = eval_cnn(predicted, y_test, n_class)
-            print("Predicted: ", prediction)
-            print("Y_test: ", y_test)
+            # print("Predicted: ", prediction)
+            # print("Y_test: ", y_test)
             print("n_class: ", n_class)
             print()
             print("Accuracy: ", acc)

@@ -8,7 +8,7 @@ tf.random.set_seed(1234)
 class snn:
     def __init__(self, numOfClass):
         self.n_class = numOfClass
-        
+
     def __build_siamese_model(self, inputShape, res=True):
         inputs = Input(inputShape)
 
@@ -65,7 +65,23 @@ class snn:
         feat2 = Flatten()(feat2)
         feat3 = Flatten()(feat3)
 
+        # x = Dense(256, kernel_regularizer=l1_l2(0.01), bias_regularizer=l1_l2(0.01))(feat3)
+        # x = BatchNormalization()(x)
+        # x = Activation('relu')(x)
+        #
+        # x = Dense(256, kernel_regularizer=l2(0.01), bias_regularizer=l2(0.01))(x)
+        # x = BatchNormalization()(x)
+        # x = Activation('relu')(x)
+        #
+        # x = Dense(256, kernel_regularizer=l2(0.01), bias_regularizer=l2(0.01))(x)
+        # x = BatchNormalization()(x)
+        # feat4 = Activation('relu')(x)
+
+        #feat4 = Dropout(0.5)(feat4)
+
         outputs = Concatenate()([feat1, feat2, feat3])
+
+        # outputs = Concatenate()([feat1, feat2, feat3])
         model = Model(inputs, outputs)
 
         return model
@@ -80,13 +96,12 @@ class snn:
         distance = Subtract()([featsA, featsB])
         distance = AbsoluteLayer()(distance)
 
-
         if(self.n_class == 2):
             actv = "sigmoid"
             self.n_class = 1
         else:
             actv = "softmax"
-            
+
         outputs = Dense(self.n_class, activation=actv, kernel_regularizer=l1_l2(0.01), bias_regularizer=l1_l2(0.01))(distance)
         model = Model(inputs=[imgA, imgB], outputs=outputs)
 
@@ -100,9 +115,10 @@ class SquareLayer(Layer):
     def call(self, x):
         return tf.math.square(x)
 
-    # Example usage
-input_shape = (64, 64, 3)  # Example input shape for image data
-num_classes = 2
-snn_model = snn(num_classes)
-model = snn_model.get_model(input_shape)
-model.summary()
+# Example usage
+if __name__ == "__main__":
+    input_shape = (16, 16, 1)  # Example input shape for image data
+    num_classes = 2
+    snn_model = snn(num_classes)
+    model = snn_model.get_model(input_shape)
+    model.summary()
