@@ -91,6 +91,6 @@ class snn:
         return model
 
 if __name__ == "__main__":
-    snn = snn(2, True, True, True, 3, (28, 28, 1), True, True)
+    snn = snn(2, True, True, True, 3, (16, 16, 1), False, False)
     model = snn.get_model()
     model.summary()
