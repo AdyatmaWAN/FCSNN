@@ -1,7 +1,7 @@
 from tf_keras.models import Model
 from tf_keras.layers import Input, Flatten, Dense, Dropout, Subtract, Concatenate, Activation, Layer, Conv2D, MaxPooling2D, BatchNormalization, Subtract, Activation
 from tf_keras.regularizers import l1_l2, l2
-from tf_keras.ops import abs
+from tf_keras.backend import abs
 import tensorflow as tf
 import tensorflow.keras.backend as K
 
@@ -20,12 +20,12 @@ class snn:
 
     def __build_siamese_model(self):
         inputs =Input(self.input_shape)
-
+        input = inputs
         feats = []
         convs = [32, 64, 128]
 
         for conv in convs:
-            x = inputs
+            x = input
 
             for i in range(0, self.num_of_layer):
                 x = Conv2D(conv, (3, 3), strides=1, padding="same", kernel_regularizer=l1_l2(0.01), bias_regularizer=l1_l2(0.01))(x)
@@ -37,9 +37,9 @@ class snn:
                 x = Dropout(0.5)(x)
             if self.is_residual:
                 feats.append(Flatten()(x))
-            inputs = x
+            input = x
 
-        x = Flatten()(inputs)
+        x = Flatten()(input)
 
         if self.is_dense:
             for i in range(0, self.num_of_layer):
@@ -51,12 +51,12 @@ class snn:
                 x = Dropout(0.5)(x)
 
         if self.is_residual:
-            outputs = Concatenate()(feats)
+            output = Concatenate()(feats)
             if self.is_dense:
-                outputs = Concatenate()([outputs, x])
+                output = Concatenate()([output, x])
         else:
-            outputs = x
-
+            output = x
+        outputs = output
         return Model(inputs, outputs)
 
     def get_model(self):
