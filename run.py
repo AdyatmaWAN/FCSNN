@@ -53,7 +53,7 @@ parser.add_argument('--experiment', type=int, required=True)
 parser.add_argument('--epoch', type=int, required=True)
 args = parser.parse_args()
 
-filename_prefix = f"experiment_{args.experiment}_opt_{args.optimizer}_lr_{args.learning_rate}_bs_{args.batch_size}"
+filename_prefix = f"experiment_{args.experiment}_subs_{args.substraction}_shared_{args.shared}_weighted_{args.weighted}_res_{args.residual}_drop_{args.dropout}_dense_{args.dense}"
 
 h5f = h5py.File('Data/3blur_all_data16x16.h5', 'r')
 X_train = h5f['X_train'][:]
@@ -93,9 +93,9 @@ if args.weighted:
         y=y_train
     )
 
-# Convert class weights into a dictionary
-class_weight_dict = {i: class_weights[i] for i in range(len(class_weights))}
-print("Class weights:", class_weight_dict)
+    # Convert class weights into a dictionary
+    class_weight_dict = {i: class_weights[i] for i in range(len(class_weights))}
+    print("Class weights:", class_weight_dict)
 
 
 # Model setup
