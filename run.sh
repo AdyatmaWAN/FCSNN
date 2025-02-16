@@ -19,18 +19,18 @@ weighted_flags=(true false)
 # Output log file
 echo "Starting grid search..." > grid_search.log
 
-# Loop through all hyperparameter combinations
-for optimizer in "${optimizers[@]}"; do
-    for learning_rate in "${learning_rates[@]}"; do
-        for batch_size in "${batch_sizes[@]}"; do
-            for experiment in "${experiments[@]}"; do
-                for num_of_layer in "${num_of_layers[@]}"; do
+# Loop through all hyperparameter combinations in reversed order
+for weighted in "${weighted_flags[@]}"; do
+    for shared in "${shared_flags[@]}"; do
+        for substraction in "${substraction_flags[@]}"; do
+            for dense in "${dense_flags[@]}"; do
+                for dropout in "${dropout_flags[@]}"; do
                     for residual in "${residual_flags[@]}"; do
-                        for dropout in "${dropout_flags[@]}"; do
-                            for dense in "${dense_flags[@]}"; do
-                                for substraction in "${substraction_flags[@]}"; do
-                                    for shared in "${shared_flags[@]}"; do
-                                        for weighted in "${weighted_flags[@]}"; do
+                        for num_of_layer in "${num_of_layers[@]}"; do
+                            for experiment in "${experiments[@]}"; do
+                                for batch_size in "${batch_sizes[@]}"; do
+                                    for learning_rate in "${learning_rates[@]}"; do
+                                        for optimizer in "${optimizers[@]}"; do
                                             # Run the Python script with the current combination of parameters
                                             python run.py \
                                                 --optimizer "$optimizer" \
