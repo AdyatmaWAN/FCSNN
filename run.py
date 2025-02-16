@@ -121,10 +121,11 @@ else:
                     validation_data=([X_val[:, 0], X_val[:, 1]], y_val), callbacks=[reduce_lr, early_s], verbose=1)
 
 # Save training and validation loss
-loss_df = pd.DataFrame({'Epoch': range(1, len(history.history['loss']) + 1),
-                        'Train Loss': history.history['loss'],
-                        'Validation Loss': history.history['val_loss']})
-loss_df.to_csv(f'csv/{filename_prefix}_training_loss.csv', index=False)
+# os.makedirs('csv', exist_ok=True)
+# loss_df = pd.DataFrame({'Epoch': range(1, len(history.history['loss']) + 1),
+#                         'Train Loss': history.history['loss'],
+#                         'Validation Loss': history.history['val_loss']})
+# loss_df.to_csv(f'csv/{filename_prefix}_training_loss.csv', index=False)
 
 # Model evaluation
 predicted = model([X_test[:, 0], X_test[:, 1]], training=False)
@@ -147,9 +148,12 @@ else:
 print(f'Accuracy: {acc}\nF-Measure: {fm}\nPrecision: {prec}\nRecall: {rec}\nConfusion Matrix:\n{confus}')
 
 # Save model
-model.save(f'saved_model/{filename_prefix}_model.h5')
+# os.makedirs('saved_model', exist_ok=True)
+# model.save(f'saved_model/{filename_prefix}_model.h5')
 
 # Save evaluation results
+
+
 result_df = pd.DataFrame([{
     "Optimizer": args.optimizer,
     "Learning Rate": args.learning_rate,
@@ -161,4 +165,8 @@ result_df = pd.DataFrame([{
     "Test Loss": history.history['val_loss'][-1],
     "Confusion Matrix": confus.tolist()
 }])
-result_df.to_csv(f'csv/{filename_prefix}_training_results.csv', index=False)
+result_file_path = f'csv/{filename_prefix}_training_results.csv'
+if os.path.exists(result_file_path):
+    result_df.to_csv(result_file_path, mode='a', header=False, index=False)  # Append results
+else:
+    result_df.to_csv(result_file_path, index=False)
