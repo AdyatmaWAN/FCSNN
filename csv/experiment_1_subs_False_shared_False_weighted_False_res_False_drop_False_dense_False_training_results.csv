@@ -1,2 +1,0 @@
-Optimizer,Learning Rate,Batch Size,Accuracy,F-Measure,Precision,Recall,Test Loss,Confusion Matrix
-Lion,0.01,32,0.31343283582089554,0.4718162839248434,0.3087431693989071,1.0,67.38142395019531,"[[5, 506], [0, 226]]"
