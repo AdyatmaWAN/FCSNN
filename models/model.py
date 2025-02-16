@@ -1,11 +1,11 @@
-from tf_keras.models import Model
-from tf_keras.layers import Input, Flatten, Dense, Dropout, Subtract, Concatenate, Activation, Layer, Conv2D, MaxPooling2D, BatchNormalization, Subtract, Activation
-from tf_keras.regularizers import l1_l2, l2
-from tf_keras.backend import abs
-import tensorflow as tf
+import tensorflow
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Flatten, Dense, Dropout, Subtract, Concatenate, Activation, Layer, Conv2D, MaxPooling2D, BatchNormalization, Subtract, Activation
+from tensorflow.keras.regularizers import l1_l2, l2
+from tensorflow.keras.backend import abs
 import tensorflow.keras.backend as K
 
-tf.random.set_seed(1234)
+tensorflow.random.set_seed(1234)
 
 class snn:
     def __init__(self, num_of_class, residual, dropout, dense, num_of_layer, input_shape, substraction, shared):

@@ -2,12 +2,12 @@ import os
 import argparse
 import random
 import numpy as np
-import tensorflow as tf
+import tensorflow
 import pandas as pd
 import h5py
 
 from tensorflow.keras.callbacks import ReduceLROnPlateau, EarlyStopping
-from model.model import snn
+from models.model import snn
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, f1_score
 from sklearn.utils import class_weight
 
@@ -15,16 +15,16 @@ SEED = 1
 def set_seeds(seed=SEED):
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
-    tf.random.set_seed(seed)
+    tensorflow.random.set_seed(seed)
     np.random.seed(seed)
 
 def set_global_determinism(seed=SEED):
     set_seeds(seed=seed)
     os.environ['TF_DETERMINISTIC_OPS'] = '1'
     os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
-    tf.config.threading.set_inter_op_parallelism_threads(1)
-    tf.config.threading.set_intra_op_parallelism_threads(1)
-    tf.keras.backend.set_floatx('float32')
+    tensorflow.config.threading.set_inter_op_parallelism_threads(1)
+    tensorflow.config.threading.set_intra_op_parallelism_threads(1)
+    tensorflow.keras.backend.set_floatx('float32')
 
 def process_data(X, y):
     # Filter out labels 1, 2, 3
@@ -50,6 +50,7 @@ parser.add_argument('--optimizer', type=str, required=True)
 parser.add_argument('--learning_rate', type=float, required=True)
 parser.add_argument('--batch_size', type=int, required=True)
 parser.add_argument('--experiment', type=int, required=True)
+parser.add_argument('--num_of_layer', type=int, required=True)
 parser.add_argument('--epoch', type=int, required=True)
 args = parser.parse_args()
 
@@ -83,7 +84,7 @@ else:
     raise ValueError("Invalid experiment number")
 
 n_class = len(set(y_train))
-loss_fn = tf.keras.losses.BinaryCrossentropy() if n_class == 2 else tf.keras.losses.SparseCategoricalCrossentropy()
+loss_fn = tensorflow.keras.losses.BinaryCrossentropy() if n_class == 2 else tensorflow.keras.losses.SparseCategoricalCrossentropy()
 metrics = ['binary_accuracy'] if n_class == 2 else ['accuracy']
 
 if args.weighted:
@@ -99,10 +100,12 @@ if args.weighted:
 
 
 # Model setup
-classifier = snn(n_class)
-model = classifier.get_model(input_shape=(16, 16, 1), residual=args.residual)
+classifier = snn(n_class, residual=args.residual, dropout=args.dropout, dense=args.dense, input_shape=(16, 16, 1),
+                 num_of_layer=args.num_of_layer, substraction=args.substraction, shared=args.shared)
 
-optimizer_class = getattr(tf.keras.optimizers, args.optimizer)
+model = classifier.get_model()
+
+optimizer_class = getattr(tensorflow.keras.optimizers, args.optimizer)
 optimizer = optimizer_class(learning_rate=args.learning_rate)
 
 model.compile(loss=loss_fn, optimizer=optimizer, metrics=metrics, jit_compile=False)
@@ -121,7 +124,7 @@ else:
 loss_df = pd.DataFrame({'Epoch': range(1, len(history.history['loss']) + 1),
                         'Train Loss': history.history['loss'],
                         'Validation Loss': history.history['val_loss']})
-loss_df.to_csv(f'{filename_prefix}_training_loss.csv', index=False)
+loss_df.to_csv(f'csv/{filename_prefix}_training_loss.csv', index=False)
 
 # Model evaluation
 predicted = model([X_test[:, 0], X_test[:, 1]], training=False)
@@ -158,4 +161,4 @@ result_df = pd.DataFrame([{
     "Test Loss": history.history['val_loss'][-1],
     "Confusion Matrix": confus.tolist()
 }])
-result_df.to_csv(f'{filename_prefix}_training_results.csv', index=False)
+result_df.to_csv(f'csv/{filename_prefix}_training_results.csv', index=False)
