@@ -32,7 +32,7 @@ for weighted in "${weighted_flags[@]}"; do
                                     for learning_rate in "${learning_rates[@]}"; do
                                         for optimizer in "${optimizers[@]}"; do
                                             # Run the Python script with the current combination of parameters
-                                            CUDA_VISIBLE_DEVICES=1 python run.py \
+                                            python run.py \
                                                 --optimizer "$optimizer" \
                                                 --learning_rate "$learning_rate" \
                                                 --batch_size "$batch_size" \
