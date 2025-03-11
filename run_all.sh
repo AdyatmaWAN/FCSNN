@@ -1,0 +1,1 @@
+bash run-proposed-1.sh && bash run-proposed-2.sh && bash run-proposed-3.sh && bash run-ramadhan-1.sh && bash run-ramadhan-2.sh && bash run-ramadhan-3.sh && bash run_fujita.sh && bash run_hajeb.sh && bash run_moya.sh
