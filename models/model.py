@@ -1,9 +1,10 @@
 import tensorflow
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Flatten, Dense, Dropout, Subtract, Concatenate, Activation, Layer, Conv2D, MaxPooling2D, BatchNormalization, Subtract, Activation
+from tensorflow.keras.layers import Lambda, Input, Flatten, Dense, Dropout, Subtract, Concatenate, Activation, Layer, Conv2D, MaxPooling2D, BatchNormalization, Subtract, Activation
 from tensorflow.keras.regularizers import l1_l2, l2
 from tensorflow.keras.backend import abs
 import tensorflow.keras.backend as K
+
 
 tensorflow.random.set_seed(1234)
 
@@ -75,7 +76,9 @@ class snn:
 
         if self.substraction:
             distance = Subtract()([feat_a, feat_b])
-            distance = abs(distance)
+            # distance = K.abs(distance)
+            distance = Lambda(lambda x: K.abs(x))(distance)
+
         else:
             distance = Concatenate()([feat_a, feat_b])
 
@@ -91,6 +94,6 @@ class snn:
         return model
 
 if __name__ == "__main__":
-    snn = snn(2, True, True, True, 3, (16, 16, 1), False, False)
+    snn = snn(2, True, True, True, 3, (16, 16, 1), True, False)
     model = snn.get_model()
     model.summary()
