@@ -262,9 +262,9 @@ if __name__ == "__main__":
                         fm_mean = fm
                     else:
                         acc = accuracy_score(y_test, prediction)
-                        prec = precision_score(y_test, prediction, average='weighted')
-                        rec = recall_score(y_test, prediction, average='weighted')
-                        fm_mean = f1_score(y_test, prediction, average='weighted')
+                        prec = precision_score(y_test, prediction, average='macro')
+                        rec = recall_score(y_test, prediction, average='macro')
+                        fm_mean = f1_score(y_test, prediction, average='macro')
 
                     print("Decision Function:", func)
                     print("Kernel:", i)

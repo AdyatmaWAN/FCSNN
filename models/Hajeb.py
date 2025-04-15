@@ -324,9 +324,9 @@ if __name__ == "__main__":
                         confus = confusion_matrix(y_test, prediction)
                     else:
                         acc = accuracy_score(y_test, prediction)
-                        prec = precision_score(y_test, prediction, average='weighted')
-                        rec = recall_score(y_test, prediction, average='weighted')
-                        fm = f1_score(y_test, prediction, average='weighted')
+                        prec = precision_score(y_test, prediction, average='macro')
+                        rec = recall_score(y_test, prediction, average='macro')
+                        fm = f1_score(y_test, prediction, average='macro')
                         confus = confusion_matrix(y_test, prediction)
 
                     print("Decision Function: ", func)
@@ -350,7 +350,7 @@ if __name__ == "__main__":
                         fm_ = fm
 
                     # Store results
-                    all_results.append([func, i, c, g, acc, fm.mean(), prec, rec])
+                    all_results.append([func, i, c, g, acc, fm, prec, rec])
 
                     temp = temp + 1
                     print(temp)

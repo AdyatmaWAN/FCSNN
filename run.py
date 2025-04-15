@@ -139,9 +139,9 @@ if n_class == 2:
 else:
     prediction = [np.argmax(p) for p in predicted]
     acc = accuracy_score(y_test, prediction)
-    fm = f1_score(y_test, prediction, average='weighted')
-    prec = precision_score(y_test, prediction, average='weighted')
-    rec = recall_score(y_test, prediction, average='weighted')
+    fm = f1_score(y_test, prediction, average='macro')
+    prec = precision_score(y_test, prediction, average='macro')
+    rec = recall_score(y_test, prediction, average='macro')
     confus = confusion_matrix(y_test, prediction)
 
 
